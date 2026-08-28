@@ -3,12 +3,12 @@
 Play a MIDI keyboard beside a backing track and see each note inside the key
 you choose.
 
-It is for beginning instrumentalists who want harmony context without stopping
-the music. The sidecar shows the scale degree, matching diatonic chords, an
-eight-beat marker, and a non-judgmental note history.
+It is for beginning instrumentalists who want to try notes without stopping
+the music. It shows each note’s number in the key, matching chords, an
+eight-beat marker, and recent notes.
 
-Try the isolated sample at `/demo` or at
-<https://theory-playalong-sidecar.sociobot.in/demo>. The demo includes a local
+Try the isolated sample at `?demo=1` or `/demo`, or at
+<https://theory-playalong-sidecar.sociobot.in/?demo=1>. The demo includes a local
 C-major groove and four recent notes. It does not write to real practice data.
 
 ## What it does
@@ -33,7 +33,7 @@ npm run dev
 ```
 
 Open <http://localhost:5173>. For the ready sandbox, open
-<http://localhost:5173/demo>.
+<http://localhost:5173/?demo=1>.
 
 ## Test and build
 

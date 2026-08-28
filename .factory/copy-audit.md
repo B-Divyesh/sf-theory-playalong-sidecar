@@ -9,6 +9,7 @@ plain-words term.
 
 | Copy | Words | Result |
 | --- | ---: | --- |
+| See each note in the key. | 6 | Pass |
 | Play notes against any backing track | 6 | Pass |
 | For beginning keyboard players who want to see why each note fits while the music keeps moving. | 16 | Pass |
 | Opens a ready C-major practice set. | 6 | Pass |
@@ -32,8 +33,7 @@ track; try the ready C-major practice set.
 | Played notes will appear here. | 5 | Pass |
 | Pick a key, then load your own audio file. | 9 | Pass |
 | Use MIDI or the screen keys while the audio continues. | 10 | Pass |
-| See the scale degree, nearby chords, and your note history. | 10 | Pass |
-| It does not grade notes, import scores, transcribe music, or generate accompaniment. | 12 | Pass |
+| See the note number in the key, matching chords, and recent notes. | 12 | Pass |
 | Your settings and note history stay in this browser. | 9 | Pass |
 | Audio files are not stored. | 5 | Pass |
 
@@ -71,3 +71,4 @@ their result. Headings describe their section without surrounding text.
 | Bundled try-out | demo |
 | Notes belonging to the scale | in key |
 | Notes not belonging to the scale | outside key |
+| Product name | Theory Playalong Sidecar |

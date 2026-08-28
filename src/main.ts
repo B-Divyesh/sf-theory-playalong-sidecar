@@ -3,7 +3,7 @@ import { KEYS, NOTE_NAMES, frequencyForMidi, noteContext, scalePitches, type Mod
 import { loadState, saveState, type HistoryNote, type SavedState } from './storage';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
-const BUILD = 'v1.0.1';
+const BUILD = 'v1.0.2';
 const CANONICAL = 'https://theory-playalong-sidecar.sociobot.in';
 const keyboardMap: Record<string, number> = {a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72};
 let cleanup: Array<() => void> = [];
@@ -21,14 +21,14 @@ function shell(content: string, demo = false): string {
     <a class="skip-link" href="#main">Skip to main content</a>
     ${demo ? `<aside class="demo-bar" aria-label="Demo mode"><strong>Demo</strong> — sample data, nothing is saved <span><button class="text-button" id="reset-demo">Reset demo</button><a href="/" data-link>Start for real</a></span></aside>` : ''}
     <header class="site-header">
-      <a class="wordmark" href="/" data-link aria-label="Theory Sidecar home"><span aria-hidden="true">▞</span> THEORY SIDECAR</a>
+      <a class="wordmark" href="/" data-link aria-label="Theory Playalong Sidecar home"><span aria-hidden="true">▞</span> THEORY SIDECAR</a>
       <nav aria-label="Main navigation"><a href="/" data-link>Home</a><a href="/demo" data-link>Demo</a><a href="/privacy" data-link>Privacy</a></nav>
     </header>
     ${content}
     <footer class="site-footer">
       <p><strong>Theory Playalong Sidecar</strong><br><span>See each note inside the key you choose.</span></p>
       <nav aria-label="Footer navigation"><a href="/privacy" data-link>Privacy</a><a href="/terms" data-link>Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></nav>
-      <p class="build">${BUILD} · Generated artwork disclosed in the design notes.</p>
+      <p class="build">${BUILD}</p>
     </footer>
     <div id="route-status" class="sr-only" aria-live="polite"></div>
     <div id="app-status" class="toast" role="status" aria-live="polite" hidden></div>`;
@@ -38,17 +38,17 @@ function landing(): string {
   return shell(`<main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <p class="eyebrow">Live harmony · no score needed</p>
+        <p class="eyebrow">See each note in the key.</p>
         <h1 id="hero-title" tabindex="-1">Play notes against any backing track</h1>
         <p class="lede">For beginning keyboard players who want to see why each note fits while the music keeps moving.</p>
-        <div class="hero-actions"><a class="button primary" href="/demo" data-link>Try it with sample data</a><span>Opens a ready C-major practice set.</span></div>
+        <div class="hero-actions"><a class="button primary" href="/?demo=1" data-link>Try it with sample data</a><span>Opens a ready C-major practice set.</span></div>
         <ul class="plain-facts"><li>Free to use.</li><li>Audio stays on your device.</li><li>Works offline after your first visit.</li></ul>
       </div>
       <figure class="hero-art"><picture><img src="/assets/harmony-console.32a49c4c.webp" width="1200" height="800" alt="A pixel keyboard sends glowing notes into a twelve-note harmony wheel." fetchpriority="high" decoding="async"></picture><figcaption>Play a note. See its place in the key.</figcaption></figure>
     </section>
     ${workspace(false, false)}
-    <section class="how" aria-labelledby="how-title"><p class="section-code">02 / SIGNAL PATH</p><h2 id="how-title">How it works</h2><ol class="steps"><li><span>01</span><div><h3>Choose the context</h3><p>Pick a key, then load your own audio file.</p></div></li><li><span>02</span><div><h3>Play without stopping</h3><p>Use MIDI or the screen keys while the audio continues.</p></div></li><li><span>03</span><div><h3>Notice what changed</h3><p>See the scale degree, nearby chords, and your note history.</p></div></li></ol></section>
-    <section class="limits" aria-labelledby="limits-title"><p class="section-code">03 / BOUNDARIES</p><h2 id="limits-title">A sidecar, not a teacher</h2><div><p>It does not grade notes, import scores, transcribe music, or generate accompaniment.</p><p>Your settings and note history stay in this browser. Audio files are not stored.</p></div></section>
+    <section class="how" aria-labelledby="how-title"><p class="section-code">02 / SIGNAL PATH</p><h2 id="how-title">How it works</h2><ol class="steps"><li><span>01</span><div><h3>Choose the context</h3><p>Pick a key, then load your own audio file.</p></div></li><li><span>02</span><div><h3>Play without stopping</h3><p>Use MIDI or the screen keys while the audio continues.</p></div></li><li><span>03</span><div><h3>Notice what changed</h3><p>See the note number in the key, matching chords, and recent notes.</p></div></li></ol></section>
+    <section class="limits" aria-labelledby="limits-title"><p class="section-code">03 / BOUNDARIES</p><h2 id="limits-title">What this practice tool does not do</h2><div><p>Your settings and note history stay in this browser. Audio files are not stored.</p></div></section>
   </main>`);
 }
 
@@ -70,7 +70,7 @@ function workspace(isDemo: boolean, isPage = true): string {
         <div class="tempo-row"><label for="bpm">Tempo <input id="bpm" type="number" min="30" max="240" step="1" value="96"> BPM</label><div class="beat-rail" aria-label="Eight-beat marker; playback has reached beat 1" id="beat-rail">${Array.from({length:8},(_,i)=>`<i class="${i===0?'active':''}" data-beat="${i}" aria-hidden="true"></i>`).join('')}<span class="sr-only" id="beat-text">Beat 1 of 8</span></div></div>
       </section>
       <section class="context-panel" aria-labelledby="context-title">
-        <div class="panel-heading"><div><span class="panel-number">B</span><${panelHeading} id="context-title">Harmony context</${panelHeading}></div><output id="midi-status" class="readout">MIDI NOT CONNECTED</output></div>
+        <div class="panel-heading"><div><span class="panel-number">B</span><${panelHeading} id="context-title">Note in the key</${panelHeading}></div><output id="midi-status" class="readout">MIDI NOT CONNECTED</output></div>
         <div class="context-controls"><label for="key-select">Key<select id="key-select">${KEYS.map(key=>`<option>${key}</option>`).join('')}</select></label><label for="mode-select">Scale<select id="mode-select"><option value="major">Major</option><option value="minor">Minor</option></select></label><button id="connect-midi" class="button secondary" type="button">Connect MIDI</button></div>
         <p id="midi-help" class="help">No MIDI keyboard? Use the screen keys or A–K.</p>
       </section>
@@ -92,39 +92,45 @@ function pianoKeys(): string {
 }
 
 function textPage(kind: 'privacy'|'terms'): string {
-  const privacy = `<p class="section-code">LOCAL FIRST / PRIVACY</p><h1 tabindex="-1">Your practice stays on this device</h1><p class="lede">Theory Sidecar has no account, ads, analytics, or remote storage.</p><section><h2>What the app stores</h2><p>Your key, tempo, and recent note history are stored in this browser with IndexedDB. Demo activity uses memory only and is discarded when you leave.</p><h2>What the app does not send</h2><p>Audio files, MIDI messages, and note history are not uploaded. The app makes no third-party runtime requests.</p><h2>Your controls</h2><p>Use the history buttons to export your notes. Clear history removes saved notes from this browser.</p><h2>Contact</h2><p>For privacy questions, email <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p></section>`;
-  const terms = `<p class="section-code">TERMS / PLAIN LANGUAGE</p><h1 tabindex="-1">Use the sidecar for practice</h1><p class="lede">These terms apply when you use Theory Playalong Sidecar.</p><section><h2>The service</h2><p>The app is free. It shows note relationships for reference and does not promise learning results.</p><h2>Your files</h2><p>You keep ownership of files you open. Only use audio that you have permission to use.</p><h2>Availability</h2><p>The app is provided as available, without warranties. MIDI support depends on your browser and device.</p><h2>Contact</h2><p>For terms questions, email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a>.</p></section>`;
+  const privacy = `<p class="section-code">LOCAL FIRST / PRIVACY</p><h1 tabindex="-1">Your practice stays on this device</h1><p class="lede">Theory Playalong Sidecar has no account, ads, analytics, or remote storage.</p><section><h2>What the app stores</h2><p>Your key, tempo, and recent note history are stored in this browser with IndexedDB. Demo activity uses memory only and is discarded when you leave.</p><h2>What the app does not send</h2><p>Audio files, MIDI messages, and note history are not uploaded. The app makes no third-party runtime requests.</p><h2>Your controls</h2><p>Use the history buttons to export your notes. Clear history removes saved notes from this browser.</p><h2>Contact</h2><p>For privacy questions, email <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p></section>`;
+  const terms = `<p class="section-code">TERMS / PLAIN LANGUAGE</p><h1 tabindex="-1">Use this practice tool</h1><p class="lede">These terms apply when you use Theory Playalong Sidecar.</p><section><h2>The service</h2><p>The app is free. It shows note relationships for reference and does not promise learning results.</p><h2>Your files</h2><p>You keep ownership of files you open. Only use audio that you have permission to use.</p><h2>Availability</h2><p>The app is provided as available, without warranties. MIDI support depends on your browser and device.</p><h2>Contact</h2><p>For terms questions, email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a>.</p></section>`;
   return shell(`<main id="main" class="text-page">${kind==='privacy'?privacy:terms}</main>`);
 }
 
 function notFound(): string {
-  return shell(`<main id="main" class="not-found"><p class="pixel-row" aria-hidden="true">□ □ ■ □</p><h1 tabindex="-1">This bar is empty</h1><p>That page is not part of the arrangement.</p><a class="button primary" href="/" data-link>Return to the sidecar</a></main>`);
+  return shell(`<main id="main" class="not-found"><p class="pixel-row" aria-hidden="true">□ □ ■ □</p><h1 tabindex="-1">This bar is empty</h1><p>That page is not part of the arrangement.</p><a class="button primary" href="/" data-link>Return to Theory Playalong Sidecar</a></main>`);
 }
 
 function setMetadata(path: string): void {
   const data: Record<string,[string,string]> = {
-    '/':['Play notes against a key — Theory Sidecar','Play a MIDI keyboard beside any backing track and see each note in the key you choose.'],
+    '/':['Theory Playalong Sidecar — play with a backing track','Play a MIDI keyboard beside any backing track and see each note in the key you choose.'],
     '/demo':['Demo — Theory Playalong Sidecar','Try the sample groove and see notes inside C major.'],
     '/privacy':['Privacy — Theory Playalong Sidecar','Read what Theory Playalong Sidecar stores in your browser.'],
     '/terms':['Terms — Theory Playalong Sidecar','Read the terms for using Theory Playalong Sidecar.']
   };
-  const [title,description] = data[path] ?? ['Not found — Theory Playalong Sidecar','Return to Theory Playalong Sidecar.'];
+  const [title,description] = data[path] ?? ['Theory Playalong Sidecar — page not found','Return to Theory Playalong Sidecar.'];
   document.title = title;
   document.querySelector<HTMLMetaElement>('meta[name="description"]')!.content = description;
+  document.querySelector<HTMLMetaElement>('meta[property="og:title"]')!.content = title;
+  document.querySelector<HTMLMetaElement>('meta[property="og:description"]')!.content = description;
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:title"]')!.content = title;
+  document.querySelector<HTMLMetaElement>('meta[name="twitter:description"]')!.content = description;
   document.querySelector<HTMLLinkElement>('link[rel="canonical"]')!.href = `${CANONICAL}${path}`;
 }
 
 async function render(path = location.pathname): Promise<void> {
   cleanup.forEach(fn=>fn()); cleanup=[];
-  if (path === '/') app.innerHTML = landing();
-  else if (path === '/demo') app.innerHTML = shell(workspace(true), true);
-  else if (path === '/privacy') app.innerHTML = textPage('privacy');
-  else if (path === '/terms') app.innerHTML = textPage('terms');
+  const isDemo = path === '/demo' || (path === '/' && new URLSearchParams(location.search).get('demo') === '1');
+  const route = isDemo ? '/demo' : path;
+  if (route === '/') app.innerHTML = landing();
+  else if (route === '/demo') app.innerHTML = shell(workspace(true), true);
+  else if (route === '/privacy') app.innerHTML = textPage('privacy');
+  else if (route === '/terms') app.innerHTML = textPage('terms');
   else app.innerHTML = notFound();
-  setMetadata(path);
+  setMetadata(route);
   bindNavigation();
-  if (path === '/' || path === '/demo') await bindWorkspace(path === '/demo');
-  if (path === '/demo') bindDemoControls();
+  if (route === '/' || route === '/demo') await bindWorkspace(route === '/demo');
+  if (route === '/demo') bindDemoControls();
   routeAnnouncer = document.querySelector('#route-status');
   const h1 = document.querySelector<HTMLHeadingElement>('h1');
   if (routeAnnouncer && h1) routeAnnouncer.textContent = h1.textContent;
@@ -195,7 +201,7 @@ async function bindWorkspace(isDemo: boolean): Promise<void> {
     const live=document.querySelector('#live-note')!;live.classList.toggle('outside',!context.inKey);live.classList.add('pulse');window.setTimeout(()=>live.classList.remove('pulse'),180);
     document.querySelectorAll('.piano-key').forEach(key=>key.classList.toggle('playing',Number((key as HTMLElement).dataset.midi)%12===context.pitchClass));
     const map=document.querySelector('#chord-map')!;
-    map.innerHTML=context.chords.length?context.chords.map(chord=>`<button type="button" data-chord="${chord.notes.join(',')}" title="Play ${chord.symbol}"><strong>${chord.symbol}</strong><span>${chord.rootName}</span></button>`).join(''):'<p>No diatonic triad in this key includes this note.</p>';
+    map.innerHTML=context.chords.length?context.chords.map(chord=>`<button type="button" data-chord="${chord.notes.join(',')}" title="Play ${chord.symbol}"><strong>${chord.symbol}</strong><span>${chord.rootName}</span></button>`).join(''):'<p>No matching three-note chord includes this note.</p>';
     map.querySelectorAll<HTMLButtonElement>('[data-chord]').forEach(button=>button.addEventListener('click',()=>sound(60,button.dataset.chord!.split(',').map(pc=>60+Number(pc)))));
     state.history.unshift({id:crypto.randomUUID(),midi,name:context.name,inKey:context.inKey,keyName:`${state.keyName} ${state.mode}`,playedAt:new Date().toISOString()});state.history=state.history.slice(0,64);renderHistory();persist();
   };

@@ -1,12 +1,21 @@
 body {
   margin: 0;
-  padding: 12vh 8vw;
   background: #090c16;
   color: #f4f1dc;
   font: 18px/1.6 system-ui, sans-serif;
 }
-main { max-width: 42rem; }
+header, main, footer { width: min(calc(100% - 32px), 900px); margin-inline: auto; }
+header { min-height: 72px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid #2a3552; }
+header nav, footer nav { display: flex; flex-wrap: wrap; gap: 20px; }
+.wordmark { color: #f4f1dc; font: 800 14px/1 ui-monospace, monospace; letter-spacing: .1em; text-decoration: none; }
+main { min-height: 58vh; max-width: 42rem; padding: 12vh 0; }
+footer { padding: 32px 0 48px; border-top: 1px solid #2a3552; color: #aeb7ca; }
+footer strong { color: #f4f1dc; }
 h1 { font: 700 2.5rem/1.1 ui-monospace, monospace; }
 a { color: #eaff72; text-underline-offset: 4px; }
 a:focus-visible { outline: 3px solid #5ee7f2; outline-offset: 3px; }
 .pixel { color: #5ee7f2; letter-spacing: .3em; }
+.skip { position: fixed; top: 8px; left: 8px; transform: translateY(-150%); padding: 12px 16px; background: #eaff72; color: #090c16; font-weight: 800; }
+.skip:focus { transform: translateY(0); }
+.button { display: inline-block; min-height: 44px; padding: 12px 16px; background: #eaff72; color: #090c16; font-weight: 800; text-decoration: none; }
+@media (max-width: 500px) { header { min-height: 64px; } header nav { gap: 12px; } main { padding: 72px 0; } }

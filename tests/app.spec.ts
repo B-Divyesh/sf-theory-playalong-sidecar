@@ -4,7 +4,7 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 
 test('landing has the required structure and clear first action', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveTitle('Play notes against a key — Theory Sidecar');
+  await expect(page).toHaveTitle('Theory Playalong Sidecar — play with a backing track');
   await expect(page.locator('h1')).toHaveCount(1);
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
@@ -13,6 +13,21 @@ test('landing has the required structure and clear first action', async ({ page 
   await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
   const axe = await new AxeBuilder({ page }).analyze();
   expect(axe.violations.filter(item => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+});
+
+test('the direct query demo is isolated, resettable, and uses demo metadata', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await expect(page).toHaveTitle('Demo — Theory Playalong Sidecar');
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Demo — Theory Playalong Sidecar');
+  await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute('content', 'Try the sample groove and see notes inside C major.');
+  await expect(page.getByLabel('Demo mode')).toContainText('sample data, nothing is saved');
+  await page.keyboard.press('a');
+  await expect(page.locator('#history-list li')).toHaveCount(5);
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.locator('#history-list li')).toHaveCount(4);
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { name: 'Play notes against any backing track' })).toBeVisible();
 });
 
 test('@claim:harmony-context shows a note inside and outside the selected key', async ({ page }) => {
@@ -107,8 +122,8 @@ test('@regression:http-404 limits SPA rewrites so unknown paths retain HTTP 404'
   expect(config.routes.some(route => route.route === '/*' && route.rewrite === '/index.html')).toBe(false);
   expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html' });
   const notFound = readFileSync('dist/404.html', 'utf8');
-  expect(notFound).toContain('<title>Not found — Theory Sidecar</title>');
-  expect(notFound).toContain('<h1>This bar is empty</h1>');
+  expect(notFound).toContain('<title>Theory Playalong Sidecar — page not found</title>');
+  expect(notFound).toContain('<h1 tabindex="-1">This bar is empty</h1>');
 });
 
 test('@claim:csv-export exports every visible demo history row', async ({ page }) => {
@@ -217,6 +232,8 @@ test('@claim:keyboard-fallback supports computer keys; routes, mobile width, and
   expect(await page.locator('#live-note').evaluate(element => Number.parseFloat(getComputedStyle(element).transitionDuration))).toBeLessThan(0.001);
   await page.getByRole('link', { name: 'Privacy' }).first().click();
   await expect(page).toHaveTitle('Privacy — Theory Playalong Sidecar');
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', 'Privacy — Theory Playalong Sidecar');
+  await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute('content', 'Read what Theory Playalong Sidecar stores in your browser.');
   await expect(page.locator('h1')).toHaveCount(1);
   expect(errors).toEqual([]);
 });
