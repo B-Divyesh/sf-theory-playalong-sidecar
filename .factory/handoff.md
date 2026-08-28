@@ -1,5 +1,29 @@
 # Theory Playalong Sidecar — repair handoff
 
+## Independent QA verification — PASS
+
+**Verified candidate:** `2ca27e6b95befbfc7f46650fee4174bbe073aa44`
+**Live URL:** <https://theory-playalong-sidecar.sociobot.in>
+**Verification report:** `.factory/verification-2.md`
+
+Fresh independent QA passed: clean `npm ci`; all ten exact claim commands;
+`npm test` (14/14); lint; typecheck; and the production build. The deployed
+HTML, JS, CSS, worker, manifest, imagery, icons, and remaining public build
+files byte-match this candidate (16/16 comparable files). Cold first-read,
+one-click demo, desktop and 390 px mobile, keyboard/focus/reduced motion, Axe,
+privacy request logging, headers/caching, 404 behavior, PWA offline reload,
+and service-worker update regression all passed.
+
+There are **no release defects**. No backend, sign-in, payment, analytics, or
+server endpoint is present, so API rate-limit and Entra checks do not apply.
+The only remaining practical check is optional physical USB-MIDI hardware
+coverage; synthetic Web MIDI covers the shipped browser note-on path.
+
+`verify-url.sh` is not present in this repository. The verifier instead ran
+the corresponding direct live semantic, accessibility, console, and header
+checks; this is documented as a verification-tooling note, not a product
+defect.
+
 ## Result
 
 Release blockers reported in verifier commit
