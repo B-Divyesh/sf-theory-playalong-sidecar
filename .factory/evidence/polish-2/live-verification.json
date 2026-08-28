@@ -1,0 +1,97 @@
+{
+  "checkedAt": "2026-08-28T20:35:29.801Z",
+  "base": "https://theory-playalong-sidecar.sociobot.in",
+  "routes": {
+    "/": {
+      "title": "Theory Playalong Sidecar — play with a backing track",
+      "h1": [
+        "Play notes with your backing track"
+      ],
+      "canonical": "https://theory-playalong-sidecar.sociobot.in/",
+      "ogTitle": "Theory Playalong Sidecar — play with a backing track",
+      "twitterTitle": "Theory Playalong Sidecar — play with a backing track",
+      "main": 1,
+      "build": "v1.0.3",
+      "seriousAxeViolations": 0
+    },
+    "/demo": {
+      "title": "Demo — Theory Playalong Sidecar",
+      "h1": [
+        "Try notes in C major"
+      ],
+      "canonical": "https://theory-playalong-sidecar.sociobot.in/demo",
+      "ogTitle": "Demo — Theory Playalong Sidecar",
+      "twitterTitle": "Demo — Theory Playalong Sidecar",
+      "main": 1,
+      "build": "v1.0.3",
+      "seriousAxeViolations": 0
+    },
+    "/privacy": {
+      "title": "Privacy — Theory Playalong Sidecar",
+      "h1": [
+        "Your practice stays on this device"
+      ],
+      "canonical": "https://theory-playalong-sidecar.sociobot.in/privacy",
+      "ogTitle": "Privacy — Theory Playalong Sidecar",
+      "twitterTitle": "Privacy — Theory Playalong Sidecar",
+      "main": 1,
+      "build": "v1.0.3",
+      "seriousAxeViolations": 0
+    },
+    "/terms": {
+      "title": "Terms — Theory Playalong Sidecar",
+      "h1": [
+        "Terms for Theory Playalong Sidecar"
+      ],
+      "canonical": "https://theory-playalong-sidecar.sociobot.in/terms",
+      "ogTitle": "Terms — Theory Playalong Sidecar",
+      "twitterTitle": "Terms — Theory Playalong Sidecar",
+      "main": 1,
+      "build": "v1.0.3",
+      "seriousAxeViolations": 0
+    }
+  },
+  "demo": {
+    "queryEntry": true,
+    "banner": true,
+    "resetToFour": true,
+    "realHistoryPreserved": true,
+    "selectedKeyChanged": true,
+    "audioContinued": true
+  },
+  "fallbacks": {
+    "/offline.html": {
+      "status": 200,
+      "title": "Offline — Theory Playalong Sidecar",
+      "h1": "You are offline",
+      "privacyLink": 2,
+      "termsLink": 1,
+      "build": "v1.0.3",
+      "seriousAxeViolations": 0
+    },
+    "/missing-polish-2": {
+      "status": 404,
+      "title": "Theory Playalong Sidecar — page not found",
+      "h1": "Page not found",
+      "privacyLink": 2,
+      "termsLink": 1,
+      "build": "v1.0.3",
+      "seriousAxeViolations": 0
+    }
+  },
+  "privacy": {
+    "outsideRequests": []
+  },
+  "consoleErrors": [],
+  "mobile": {
+    "width": 390,
+    "noHorizontalOverflow": true,
+    "firstActionVisible": true
+  },
+  "securityHeaders": {
+    "contentSecurityPolicy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+    "xContentTypeOptions": "nosniff",
+    "referrerPolicy": "strict-origin-when-cross-origin"
+  },
+  "offlineReload": true
+}
