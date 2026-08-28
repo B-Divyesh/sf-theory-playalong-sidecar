@@ -73,10 +73,10 @@ service-worker update. Axe found no serious or critical issues on desktop or
 mobile. The factory URL verifier found no console/page errors, one h1,
 `lang="en"`, a main landmark, and no missing image alt text.
 
-Lighthouse 12.8.2 mobile: Performance 100, Accessibility 100, Best Practices
-100, SEO 100; LCP 1.584 s, CLS 0, TBT 0 ms. Production output is 22.34 KB raw
-JavaScript (8.47 KB gzip), 14.14 KB raw CSS (3.77 KB gzip), and a 57.41 KB hero
-image. Evidence and refreshed desktop/mobile screenshots are in
+Live Lighthouse 12.8.2 mobile: Performance 100, Accessibility 100, Best
+Practices 100, SEO 100; LCP 1.209 s, CLS 0, TBT 83 ms. Production output is
+22.34 KB raw JavaScript (8.47 KB gzip), 14.14 KB raw CSS (3.77 KB gzip), and a
+57.41 KB hero image. Evidence and refreshed desktop/mobile screenshots are in
 `.factory/evidence/`.
 
 Before deployment, live reproduction confirmed `/missing-page` returned HTTP
@@ -84,16 +84,34 @@ Before deployment, live reproduction confirmed `/missing-page` returned HTTP
 max-age=30`. The verifier report contains the original beat-marker failure and
 repeat failure artifacts.
 
-## Deploy
+## Deployment and live identity
 
-Build and deploy the generated static root:
+Repair commit `8b48219` was pushed to `origin/main`. The static upload completed
+as Azure deployment `aaecf218-f329-4dbe-accd-9711e75ca1ea`, using the work
+order's `dist/` directory. The custom production URL is
+<https://theory-playalong-sidecar.sociobot.in>.
 
-```sh
-npm ci && npm test && npm run build
-/opt/fleet/lib/deploy-static.sh theory-playalong-sidecar dist
-```
+- `/`, `/demo`, `/privacy`, `/terms`, the manifest, and service worker return
+  HTTP 200.
+- `/missing-page` returns HTTP 404 with the title “Not found — Theory Sidecar”
+  and the designed “This bar is empty” heading.
+- The root returns `Cache-Control: no-cache`; `sw.js` returns `no-cache,
+  no-store, must-revalidate`; `app-CQEv2SUC.js` returns `public,
+  max-age=31536000, immutable`.
+- The live JS SHA-256 is
+  `94867e66c3bd4d4b0f16a11cf6ce5c3f17452b28d457a7d5b3142a4613185b85`.
+  The live worker SHA-256 is
+  `966f60cee49edce05aca7ddd20092d5d709d4a103201321fa2ff81b33fbf85b7`.
+  Both byte-match the deployed `dist/` files.
+- CSP, HSTS, `nosniff`, Referrer-Policy, and restrictive Permissions-Policy are
+  present on production responses.
+- A fresh production browser registered the worker, reloaded `/demo` offline,
+  and played C with “Degree 1 · in C major.” It made no third-party request.
 
-Live deployment and identity checks are recorded below after upload.
+The production URL verifier recorded no console or page errors, one h1,
+`lang="en"`, a main landmark, and complete image alt text. Live desktop and
+390×844 Axe scans again found zero serious or critical issues; there was no
+mobile horizontal overflow, and the skip link received first keyboard focus.
 
 ## Honest boundaries
 
