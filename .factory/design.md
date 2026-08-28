@@ -58,7 +58,7 @@ playing order: source, key, transport, live note, keyboard, history.
 
 - Primary actions depress by 2 px, like a console key.
 - MIDI and audio states appear as fixed-width status readouts.
-- The one-octave keyboard supports pointer input and computer keys A–J. A note
+- The one-octave keyboard supports pointer input and computer keys A–K. A note
   lights from its physical key toward the live-note readout.
 - Each played note adds one compact history chip. No score, red cross, or grade
   appears; an outside-key note uses a hollow diamond and plain language.

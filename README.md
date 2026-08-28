@@ -1,10 +1,10 @@
 # Theory Playalong Sidecar
 
-Play a MIDI keyboard beside a backing track and see each note inside the key
+Play a MIDI keyboard with a local backing track and see each note inside the key
 you choose.
 
-It is for beginning instrumentalists who want to try notes without stopping
-the music. It shows each note’s number in the key, matching chords, an
+It is for beginning instrumentalists who want to play notes while audio
+continues. It shows each note’s number in the key, matching chords, an
 eight-beat marker, and recent notes.
 
 Try the isolated sample at `?demo=1` or `/demo`, or at
@@ -15,8 +15,8 @@ C-major groove and four recent notes. It does not write to real practice data.
 
 - Reads note-on messages from a connected MIDI keyboard.
 - Accepts a local audio file and does not store the file.
-- Saves key, tempo, and recent note history in browser IndexedDB.
-- Exports note history as CSV or JSON and imports Sidecar JSON.
+- Keeps your key, scale, tempo, and recent notes in this browser.
+- Exports note history as CSV or a backup file, and imports that backup.
 - Works offline after the first online visit.
 - Runs free, without an account or payment gate.
 
@@ -51,10 +51,12 @@ root.
 
 ## Privacy and data
 
-There are no accounts, trackers, ads, third-party scripts, or runtime CDNs.
-Audio uses a temporary browser URL. MIDI messages stay inside the page. Real
-practice state uses the `theory-sidecar-v1` IndexedDB database. Demo state stays
-in memory.
+There is no account. Your key, scale, tempo, and recent notes stay in this
+browser. Audio files are not stored. The app makes no third-party requests
+during practice. Demo changes stay separate and are discarded when you leave.
+
+Implementation note: real practice data uses the `theory-sidecar-v1` browser
+database. Demo data stays in memory.
 
 Read the in-app [privacy page](https://theory-playalong-sidecar.sociobot.in/privacy)
 and [terms](https://theory-playalong-sidecar.sociobot.in/terms).

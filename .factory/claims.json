@@ -4,7 +4,7 @@
     "claim": "Shows whether each played note is in the selected key and which matching chords include it.",
     "where": "landing preview, demo workspace, README",
     "test": "npm test -- --grep @claim:harmony-context",
-    "sandbox": "fresh browser context at /demo; play E and F-sharp against C major"
+    "sandbox": "fresh browser context at /demo; replay E after changing C major to E minor and assert note, scale, and chords change"
   },
   {
     "id": "midi-input",
@@ -15,17 +15,17 @@
   },
   {
     "id": "local-audio",
-    "claim": "Audio, MIDI messages, and demo notes are not sent to a third party or saved as real data.",
+    "claim": "Keeps local audio, MIDI messages, and demo notes on this device; demo changes are not saved as real practice data.",
     "where": "landing facts, demo banner, privacy page, README",
     "test": "npm test -- --grep @claim:local-audio",
-    "sandbox": "fresh browser context at /demo; intercept all requests and inspect browser storage"
+    "sandbox": "fresh browser context at /demo; load and play a valid local WAV, send synthetic MIDI, record requests, and inspect storage"
   },
   {
     "id": "beat-marker",
     "claim": "Shows an eight-beat marker that advances with audio playback at the chosen tempo.",
     "where": "landing workspace, demo workspace, README",
     "test": "npm test -- --grep @claim:beat-marker",
-    "sandbox": "fresh browser context at /demo; play the 96 BPM sample and assert the durable progression milestone reaches beat 2"
+    "sandbox": "fresh demo runs at 60 and 120 beats per minute; measure the first beat interval against 60 / tempo"
   },
   {
     "id": "csv-export",
@@ -36,17 +36,17 @@
   },
   {
     "id": "history-portability",
-    "claim": "Exports and imports note history as JSON.",
+    "claim": "Exports and imports note history as a backup file.",
     "where": "history toolbar, README",
     "test": "npm test -- --grep @claim:history-portability",
-    "sandbox": "fresh browser context at /demo; export the four sample notes and import that file"
+    "sandbox": "fresh browser context at /demo; export the four sample notes and import that backup"
   },
   {
     "id": "local-history",
-    "claim": "Keeps settings and note history in this browser but does not store audio files.",
+    "claim": "Keeps key, scale, tempo, and note history in this browser but does not store audio files.",
     "where": "landing privacy section, privacy page, README",
     "test": "npm test -- --grep @claim:local-history",
-    "sandbox": "fresh browser context at /; play a note, choose a local audio fixture, reload, and inspect both states"
+    "sandbox": "fresh context at /; change key, scale, and tempo; play a note; choose local audio; reload and inspect every state"
   },
   {
     "id": "offline-reload",
@@ -58,15 +58,29 @@
   {
     "id": "free-use",
     "claim": "Free to use with no account or payment gate.",
-    "where": "landing facts, terms page, README",
+    "where": "landing facts, privacy page, terms page, README",
     "test": "npm test -- --grep @claim:free-use",
-    "sandbox": "fresh browser context; enter demo from landing and assert no credential gate"
+    "sandbox": "fresh browser context; enter demo from landing and assert no credential or payment gate"
   },
   {
     "id": "keyboard-fallback",
     "claim": "The screen keys and computer keys A–K work without MIDI hardware.",
     "where": "workspace help, demo intro, README",
     "test": "npm test -- --grep @claim:keyboard-fallback",
-    "sandbox": "fresh 390px browser context at /demo; press the A key and observe C"
+    "sandbox": "fresh 390px browser context at /demo; click a screen key and press a mapped computer key without Web MIDI"
+  },
+  {
+    "id": "demo-ready",
+    "claim": "The demo opens with a playable C-major groove and four recent notes.",
+    "where": "landing demo action, demo intro, README",
+    "test": "npm test -- --grep @claim:demo-ready",
+    "sandbox": "fresh browser context at /?demo=1; assert playable sample audio and exactly C, E, F-sharp, and G sample notes"
+  },
+  {
+    "id": "playalong-continuity",
+    "claim": "Screen, computer, and MIDI notes work while the sample audio continues playing.",
+    "where": "landing how-it-works, README",
+    "test": "npm test -- --grep @claim:playalong-continuity",
+    "sandbox": "fresh browser context at /demo; start sample audio, use all three input paths, and assert audio time keeps increasing"
   }
 ]

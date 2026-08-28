@@ -1,1 +1,1 @@
-Play notes with a backing track and see each note in the key.
+Play notes with a local backing track and see where they fit in your chosen key.

@@ -1,15 +1,16 @@
 {
   "name": "theory-playalong-sidecar",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests scripts *.config.ts",
+    "copycheck": "node scripts/check-copy-audit.mjs",
     "build": "npm run typecheck && vite build && node scripts/stamp-service-worker.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "npm run build && playwright test"
+    "test": "npm run build && npm run copycheck && playwright test"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

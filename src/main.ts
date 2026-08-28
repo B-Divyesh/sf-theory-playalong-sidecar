@@ -3,7 +3,8 @@ import { KEYS, NOTE_NAMES, frequencyForMidi, noteContext, scalePitches, type Mod
 import { loadState, saveState, type HistoryNote, type SavedState } from './storage';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
-const BUILD = 'v1.0.2';
+declare const __APP_VERSION__: string;
+const BUILD = `v${__APP_VERSION__}`;
 const CANONICAL = 'https://theory-playalong-sidecar.sociobot.in';
 const keyboardMap: Record<string, number> = {a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72};
 let cleanup: Array<() => void> = [];
@@ -39,7 +40,7 @@ function landing(): string {
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow">See each note in the key.</p>
-        <h1 id="hero-title" tabindex="-1">Play notes against any backing track</h1>
+        <h1 id="hero-title" tabindex="-1">Play notes with your backing track</h1>
         <p class="lede">For beginning keyboard players who want to see why each note fits while the music keeps moving.</p>
         <div class="hero-actions"><a class="button primary" href="/?demo=1" data-link>Try it with sample data</a><span>Opens a ready C-major practice set.</span></div>
         <ul class="plain-facts"><li>Free to use.</li><li>Audio stays on your device.</li><li>Works offline after your first visit.</li></ul>
@@ -47,13 +48,13 @@ function landing(): string {
       <figure class="hero-art"><picture><img src="/assets/harmony-console.32a49c4c.webp" width="1200" height="800" alt="A pixel keyboard sends glowing notes into a twelve-note harmony wheel." fetchpriority="high" decoding="async"></picture><figcaption>Play a note. See its place in the key.</figcaption></figure>
     </section>
     ${workspace(false, false)}
-    <section class="how" aria-labelledby="how-title"><p class="section-code">02 / SIGNAL PATH</p><h2 id="how-title">How it works</h2><ol class="steps"><li><span>01</span><div><h3>Choose the context</h3><p>Pick a key, then load your own audio file.</p></div></li><li><span>02</span><div><h3>Play without stopping</h3><p>Use MIDI or the screen keys while the audio continues.</p></div></li><li><span>03</span><div><h3>Notice what changed</h3><p>See the note number in the key, matching chords, and recent notes.</p></div></li></ol></section>
-    <section class="limits" aria-labelledby="limits-title"><p class="section-code">03 / BOUNDARIES</p><h2 id="limits-title">What this practice tool does not do</h2><div><p>Your settings and note history stay in this browser. Audio files are not stored.</p></div></section>
+    <section class="how" aria-labelledby="how-title"><h2 id="how-title">How it works</h2><ol class="steps"><li><span>01</span><div><h3>Choose a key and audio file</h3><p>Pick a key, then load your own audio file.</p></div></li><li><span>02</span><div><h3>Play notes while audio continues</h3><p>Use MIDI or the screen keys while the audio continues.</p></div></li><li><span>03</span><div><h3>See where each note fits</h3><p>See the note number in the key, matching chords, and recent notes.</p></div></li></ol></section>
+    <section class="limits" aria-labelledby="limits-title"><h2 id="limits-title">Your practice data</h2><div><p>Your settings and note history stay in this browser. Audio files are not stored.</p></div></section>
   </main>`);
 }
 
 function workspace(isDemo: boolean, isPage = true): string {
-  const heading = isPage ? `<p class="section-code">DEMO / C MAJOR</p><h1 tabindex="-1">Try notes in C major</h1><p class="demo-intro">The sample groove and four notes are ready. Press a screen key or use A–K on your keyboard.</p>` : `<p class="section-code">01 / PLAYALONG</p><h2 id="play-title">Keep the track moving</h2>`;
+  const heading = isPage ? `<h1 tabindex="-1">Try notes in C major</h1><p class="demo-intro">The sample groove and four notes are ready. Press a screen key or use A–K on your keyboard.</p>` : `<h2 id="play-title">Play notes with a backing track</h2>`;
   const tag = isPage ? 'main' : 'section';
   const attrs = isPage ? `id="main" class="workspace-page"` : `id="play" class="workspace-section" aria-labelledby="play-title"`;
   const panelHeading = isPage ? 'h2' : 'h3';
@@ -67,7 +68,7 @@ function workspace(isDemo: boolean, isPage = true): string {
           ${isDemo ? `<button id="sample-play" class="button secondary" type="button">Play sample groove</button>` : ''}
           <audio id="audio-player" controls preload="metadata" aria-label="Backing track player"></audio>
         </div>
-        <div class="tempo-row"><label for="bpm">Tempo <input id="bpm" type="number" min="30" max="240" step="1" value="96"> BPM</label><div class="beat-rail" aria-label="Eight-beat marker; playback has reached beat 1" id="beat-rail">${Array.from({length:8},(_,i)=>`<i class="${i===0?'active':''}" data-beat="${i}" aria-hidden="true"></i>`).join('')}<span class="sr-only" id="beat-text">Beat 1 of 8</span></div></div>
+        <div class="tempo-row"><label for="bpm">Tempo (beats per minute) <input id="bpm" type="number" min="30" max="240" step="1" value="96"></label><div class="beat-rail" aria-label="Eight-beat marker; playback has reached beat 1" id="beat-rail">${Array.from({length:8},(_,i)=>`<i class="${i===0?'active':''}" data-beat="${i}" aria-hidden="true"></i>`).join('')}<span class="sr-only" id="beat-text">Beat 1 of 8</span></div></div>
       </section>
       <section class="context-panel" aria-labelledby="context-title">
         <div class="panel-heading"><div><span class="panel-number">B</span><${panelHeading} id="context-title">Note in the key</${panelHeading}></div><output id="midi-status" class="readout">MIDI NOT CONNECTED</output></div>
@@ -78,8 +79,8 @@ function workspace(isDemo: boolean, isPage = true): string {
         <div class="live-note" id="live-note"><p class="panel-number" id="live-title">LIVE NOTE</p><strong id="note-name">—</strong><span id="note-fit">Play a note to see its place.</span></div>
         <div class="chord-area"><${panelSubheading}>Chords that include it</${panelSubheading}><div id="chord-map" class="chord-map"><p>Chord names appear after you play.</p></div></div>
       </section>
-      <section class="keyboard-panel" aria-labelledby="keyboard-title"><div class="keyboard-heading"><div><span class="panel-number">C</span><${panelHeading} id="keyboard-title">One-octave note map</${panelHeading}></div><p>Computer keys: A W S E D F T G Y H U J K</p></div><div class="keyboard-scroll"><div class="piano" id="piano" role="group" aria-label="Playable one-octave keyboard">${pianoKeys()}</div></div><p id="scale-summary" class="scale-summary"></p></section>
-      <section class="history-panel" aria-labelledby="history-title"><div class="panel-heading"><div><span class="panel-number">D</span><${panelHeading} id="history-title">Recent notes</${panelHeading}></div><span id="history-count" class="readout">0 NOTES</span></div><ol id="history-list" class="history-list" tabindex="0" aria-label="Scrollable recent note history"><li class="empty">Played notes will appear here.</li></ol><div class="history-actions"><button class="text-button" id="clear-history" type="button">Clear history</button><button class="text-button" id="export-csv" type="button">Export CSV</button><button class="text-button" id="export-json" type="button">Export JSON</button><label class="text-button import-label">Import JSON<input id="import-json" type="file" accept="application/json"></label></div></section>
+      <section class="keyboard-panel" aria-labelledby="keyboard-title"><div class="keyboard-heading"><div><span class="panel-number">C</span><${panelHeading} id="keyboard-title">Notes from C to C</${panelHeading}></div><p>Computer keys: A W S E D F T G Y H U J K</p></div><div class="keyboard-scroll"><div class="piano" id="piano" role="group" aria-label="Playable notes from C to C">${pianoKeys()}</div></div><p id="scale-summary" class="scale-summary"></p></section>
+      <section class="history-panel" aria-labelledby="history-title"><div class="panel-heading"><div><span class="panel-number">D</span><${panelHeading} id="history-title">Recent notes</${panelHeading}></div><span id="history-count" class="readout">0 NOTES</span></div><ol id="history-list" class="history-list" tabindex="0" aria-label="Scrollable recent note history"><li class="empty">Played notes will appear here.</li></ol><div class="history-actions"><button class="text-button" id="clear-history" type="button">Clear history</button><button class="text-button" id="export-csv" type="button">Export CSV</button><button class="text-button" id="export-json" type="button">Export backup</button><label class="text-button import-label">Import backup<input id="import-json" type="file" accept="application/json,.json"></label></div></section>
     </div>
   </${tag}>`;
 }
@@ -92,18 +93,18 @@ function pianoKeys(): string {
 }
 
 function textPage(kind: 'privacy'|'terms'): string {
-  const privacy = `<p class="section-code">LOCAL FIRST / PRIVACY</p><h1 tabindex="-1">Your practice stays on this device</h1><p class="lede">Theory Playalong Sidecar has no account, ads, analytics, or remote storage.</p><section><h2>What the app stores</h2><p>Your key, tempo, and recent note history are stored in this browser with IndexedDB. Demo activity uses memory only and is discarded when you leave.</p><h2>What the app does not send</h2><p>Audio files, MIDI messages, and note history are not uploaded. The app makes no third-party runtime requests.</p><h2>Your controls</h2><p>Use the history buttons to export your notes. Clear history removes saved notes from this browser.</p><h2>Contact</h2><p>For privacy questions, email <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p></section>`;
-  const terms = `<p class="section-code">TERMS / PLAIN LANGUAGE</p><h1 tabindex="-1">Use this practice tool</h1><p class="lede">These terms apply when you use Theory Playalong Sidecar.</p><section><h2>The service</h2><p>The app is free. It shows note relationships for reference and does not promise learning results.</p><h2>Your files</h2><p>You keep ownership of files you open. Only use audio that you have permission to use.</p><h2>Availability</h2><p>The app is provided as available, without warranties. MIDI support depends on your browser and device.</p><h2>Contact</h2><p>For terms questions, email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a>.</p></section>`;
+  const privacy = `<h1 tabindex="-1">Your practice stays on this device</h1><p class="lede">Theory Playalong Sidecar has no account and makes no third-party requests.</p><section><h2>What the app stores</h2><p>Your key, scale, tempo, and recent notes stay in this browser. Demo changes are discarded when you leave.</p><h2>What the app does not send</h2><p>Audio files, MIDI messages, and note history are not uploaded.</p><h2>Your controls</h2><p>Use the history buttons to export your notes. Clear history removes saved notes from this browser.</p><h2>Contact</h2><p>For privacy questions, email <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p></section>`;
+  const terms = `<h1 tabindex="-1">Terms for Theory Playalong Sidecar</h1><p class="lede">These terms apply when you use Theory Playalong Sidecar.</p><section><h2>The service</h2><p>The app is free. It shows note relationships for reference and does not promise learning results.</p><h2>Your files</h2><p>You keep ownership of files you open. Only use audio that you have permission to use.</p><h2>Availability</h2><p>The app is provided as available, without warranties. MIDI support depends on your browser and device.</p><h2>Contact</h2><p>For terms questions, email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a>.</p></section>`;
   return shell(`<main id="main" class="text-page">${kind==='privacy'?privacy:terms}</main>`);
 }
 
 function notFound(): string {
-  return shell(`<main id="main" class="not-found"><p class="pixel-row" aria-hidden="true">□ □ ■ □</p><h1 tabindex="-1">This bar is empty</h1><p>That page is not part of the arrangement.</p><a class="button primary" href="/" data-link>Return to Theory Playalong Sidecar</a></main>`);
+  return shell(`<main id="main" class="not-found"><p class="pixel-row" aria-hidden="true">□ □ ■ □</p><h1 tabindex="-1">Page not found</h1><p>That address does not match a page in Theory Playalong Sidecar.</p><a class="button primary" href="/" data-link>Return to Theory Playalong Sidecar</a></main>`);
 }
 
 function setMetadata(path: string): void {
   const data: Record<string,[string,string]> = {
-    '/':['Theory Playalong Sidecar — play with a backing track','Play a MIDI keyboard beside any backing track and see each note in the key you choose.'],
+    '/':['Theory Playalong Sidecar — play with a backing track','Play a MIDI keyboard with a local backing track and see each note in the key you choose.'],
     '/demo':['Demo — Theory Playalong Sidecar','Try the sample groove and see notes inside C major.'],
     '/privacy':['Privacy — Theory Playalong Sidecar','Read what Theory Playalong Sidecar stores in your browser.'],
     '/terms':['Terms — Theory Playalong Sidecar','Read the terms for using Theory Playalong Sidecar.']
@@ -177,7 +178,8 @@ async function bindWorkspace(isDemo: boolean): Promise<void> {
   keySelect.value=state.keyName;modeSelect.value=state.mode;bpmInput.value=String(state.bpm);
   let audioUrl='';
   if(isDemo){audioUrl=URL.createObjectURL(createSampleWav());audio.src=audioUrl;audio.loop=true;cleanup.push(()=>URL.revokeObjectURL(audioUrl));}
-  const persist=()=>{if(!isDemo)saveState(state).catch(()=>announce('Changes could not be saved. Your browser may block storage.'));};
+  let saveQueue=Promise.resolve();
+  const persist=()=>{if(!isDemo){const snapshot=structuredClone(state);saveQueue=saveQueue.then(()=>saveState(snapshot)).catch(()=>announce('Changes could not be saved. Your browser may block storage.'));}};
   const renderContext=()=>{
     const scale=scalePitches(state.keyName,state.mode as Mode);
     document.querySelector('#scale-summary')!.textContent=`${state.keyName} ${state.mode}: ${scale.map(pc=>NOTE_NAMES[pc]).join(' · ')}`;
@@ -241,7 +243,7 @@ async function bindWorkspace(isDemo: boolean): Promise<void> {
   document.querySelector('#clear-history')!.addEventListener('click',()=>{if(!confirm(`Clear ${state.history.length} recent notes?`))return;state.history=[];renderHistory();persist();announce('Note history cleared.');});
   document.querySelector('#export-csv')!.addEventListener('click',()=>download('theory-sidecar-history.csv',`note,in_key,key,played_at\n${state.history.map(n=>`${n.name},${n.inKey},${n.keyName},${n.playedAt}`).join('\n')}`,'text/csv'));
   document.querySelector('#export-json')!.addEventListener('click',()=>download('theory-sidecar-history.json',JSON.stringify({version:1,history:state.history},null,2),'application/json'));
-  document.querySelector<HTMLInputElement>('#import-json')!.addEventListener('change',async event=>{try{const imported=JSON.parse(await (event.target as HTMLInputElement).files![0].text()) as {history:HistoryNote[]};if(!Array.isArray(imported.history))throw new Error();state.history=imported.history.slice(0,64);renderHistory();persist();announce('Note history imported.');}catch{announce('That JSON file did not contain note history. Choose an exported Sidecar file.');}});
+  document.querySelector<HTMLInputElement>('#import-json')!.addEventListener('change',async event=>{try{const imported=JSON.parse(await (event.target as HTMLInputElement).files![0].text()) as {history:HistoryNote[]};if(!Array.isArray(imported.history))throw new Error();state.history=imported.history.slice(0,64);renderHistory();persist();announce('Note history imported.');}catch{announce('That backup file did not contain note history. Choose an exported backup file.');}});
   renderContext();renderHistory();
 }
 
@@ -249,7 +251,7 @@ function download(name:string,contents:string,type:string):void{const url=URL.cr
 
 window.addEventListener('popstate',()=>render(location.pathname).then(()=>document.querySelector<HTMLHeadingElement>('h1')?.focus()));
 window.addEventListener('online',()=>announce('You are back online.'));
-window.addEventListener('offline',()=>announce('You are offline. The loaded sidecar still works.'));
+window.addEventListener('offline',()=>announce('You are offline. The practice tool still works.'));
 
 render().then(()=>{
   if('serviceWorker'in navigator){
