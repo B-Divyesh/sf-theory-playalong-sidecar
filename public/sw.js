@@ -1,5 +1,5 @@
-const VERSION = 'sidecar-v3';
-const SHELL = ['/', '/demo', '/privacy', '/terms', '/offline.html', '/manifest.webmanifest', '/icon.svg', '/assets/harmony-console.webp', '/assets/app.js', '/assets/index.css'];
+const VERSION = 'sidecar-v4';
+const SHELL = ['/', '/demo', '/privacy', '/terms', '/offline.html', '/simple.css', '/manifest.webmanifest', '/icon.svg', '/assets/harmony-console.webp', '/assets/app.js', '/assets/index.css'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(VERSION).then(cache => Promise.all(SHELL.map(async url => {
     const response = await fetch(new Request(url, {cache:'reload'}));

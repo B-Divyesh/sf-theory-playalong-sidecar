@@ -99,7 +99,6 @@ test('@claim:offline-reload reloads the demo without a network connection', asyn
   await page.goto('/demo');
   await page.evaluate(() => navigator.serviceWorker.ready);
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
-  await page.reload();
   await context.setOffline(true);
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Try notes in C major' })).toBeVisible();
