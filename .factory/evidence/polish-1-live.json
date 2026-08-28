@@ -1,0 +1,57 @@
+{
+  "root": {
+    "title": "Theory Playalong Sidecar — play with a backing track",
+    "eyebrow": "See each note in the key.",
+    "consoleErrors": [],
+    "axe": []
+  },
+  "copy": {
+    "plainStep": true,
+    "staleCopy": false,
+    "provenanceFooter": false
+  },
+  "routes": {
+    "/": {
+      "title": "Theory Playalong Sidecar — play with a backing track",
+      "og": "Theory Playalong Sidecar — play with a backing track",
+      "twitter": "Theory Playalong Sidecar — play with a backing track",
+      "expected": "Theory Playalong Sidecar — play with a backing track"
+    },
+    "/demo": {
+      "title": "Demo — Theory Playalong Sidecar",
+      "og": "Demo — Theory Playalong Sidecar",
+      "twitter": "Demo — Theory Playalong Sidecar",
+      "expected": "Demo — Theory Playalong Sidecar"
+    },
+    "/privacy": {
+      "title": "Privacy — Theory Playalong Sidecar",
+      "og": "Privacy — Theory Playalong Sidecar",
+      "twitter": "Privacy — Theory Playalong Sidecar",
+      "expected": "Privacy — Theory Playalong Sidecar"
+    },
+    "/terms": {
+      "title": "Terms — Theory Playalong Sidecar",
+      "og": "Terms — Theory Playalong Sidecar",
+      "twitter": "Terms — Theory Playalong Sidecar",
+      "expected": "Terms — Theory Playalong Sidecar"
+    }
+  },
+  "demo": {
+    "status": 200,
+    "title": "Demo — Theory Playalong Sidecar",
+    "banner": "Demo — sample data, nothing is saved Reset demoStart for real",
+    "og": "Demo — Theory Playalong Sidecar",
+    "historyAfterPlay": 5,
+    "historyAfterReset": 4
+  },
+  "mobile": {
+    "overflow": false,
+    "axe": []
+  },
+  "notFound": {
+    "status": 404,
+    "title": "Theory Playalong Sidecar — page not found",
+    "h1": "This bar is empty",
+    "axe": []
+  }
+}
