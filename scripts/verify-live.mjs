@@ -49,11 +49,11 @@ function check(value, message) {
 }
 
 const routeEvidence = {};
-for (const [path, title, heading] of [
-  ['/', 'Theory Playalong Sidecar — play with a backing track', 'Play notes with your backing track'],
-  ['/demo', 'Demo — Theory Playalong Sidecar', 'Try notes in C major'],
-  ['/privacy', 'Privacy — Theory Playalong Sidecar', 'Your practice stays on this device'],
-  ['/terms', 'Terms — Theory Playalong Sidecar', 'Terms for Theory Playalong Sidecar']
+for (const [path, title, heading, description] of [
+  ['/', 'Theory Playalong Sidecar — play with a backing track', 'Play notes with your backing track', 'Play a MIDI keyboard with a local backing track and see each note in the key you choose.'],
+  ['/demo', 'Demo — Theory Playalong Sidecar', 'Try notes in C major', 'Try the sample groove and see notes inside C major.'],
+  ['/privacy', 'Privacy — Theory Playalong Sidecar', 'Your practice stays on this device', 'Read what Theory Playalong Sidecar stores in your browser.'],
+  ['/terms', 'Terms — Theory Playalong Sidecar', 'Terms for Theory Playalong Sidecar', 'Read the terms for using Theory Playalong Sidecar.']
 ]) {
   await page.goto(`${base}${path}`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
   await page.waitForTimeout(300);
@@ -61,8 +61,11 @@ for (const [path, title, heading] of [
     title: globalThis.document.title,
     h1: [...globalThis.document.querySelectorAll('h1')].map(node => node.textContent?.trim()),
     canonical: globalThis.document.querySelector('link[rel="canonical"]')?.href,
+    description: globalThis.document.querySelector('meta[name="description"]')?.getAttribute('content'),
     ogTitle: globalThis.document.querySelector('meta[property="og:title"]')?.getAttribute('content'),
+    ogDescription: globalThis.document.querySelector('meta[property="og:description"]')?.getAttribute('content'),
     twitterTitle: globalThis.document.querySelector('meta[name="twitter:title"]')?.getAttribute('content'),
+    twitterDescription: globalThis.document.querySelector('meta[name="twitter:description"]')?.getAttribute('content'),
     main: globalThis.document.querySelectorAll('main').length,
     build: globalThis.document.querySelector('.build')?.textContent?.trim()
   }));
@@ -70,12 +73,19 @@ for (const [path, title, heading] of [
   check(result.h1.length === 1 && result.h1[0] === heading, `${path} heading mismatch`);
   check(result.main === 1, `${path} must have one main`);
   check(result.build === 'v1.0.4', `${path} build identifier mismatch`);
+  check(result.canonical === `${base}${path}`, `${path} canonical mismatch`);
   check(result.ogTitle === title && result.twitterTitle === title, `${path} social metadata mismatch`);
+  check(result.description === description && result.ogDescription === description && result.twitterDescription === description, `${path} description metadata mismatch`);
   const axe = await new AxeBuilder({ page }).analyze();
   const serious = axe.violations.filter(item => ['serious', 'critical'].includes(item.impact ?? ''));
   check(serious.length === 0, `${path} has serious accessibility findings`);
   routeEvidence[path] = { ...result, seriousAxeViolations: serious.length };
 }
+
+await page.goto(`${base}/privacy`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+const privacyCopy = await page.locator('main').innerText();
+check(privacyCopy.includes('Theory Playalong Sidecar makes no third-party requests.'), 'privacy request promise missing');
+check(privacyCopy.includes('Clear history removes your note history from this browser.'), 'privacy deletion control missing');
 
 await page.goto(`${base}/`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
 await page.locator('#key-select').selectOption({ label: 'D' });
@@ -109,10 +119,12 @@ const backupText = Buffer.concat(backupBytes).toString('utf8');
 await page.getByRole('button', { name: 'Play B', exact: true }).click();
 check(await page.locator('#history-list li').count() === 5, 'demo mutation did not add a fifth note');
 await page.setInputFiles('#import-json', { name: 'live-backup.json', mimeType: 'application/json', buffer: Buffer.from(backupText) });
+await page.waitForFunction(() => globalThis.document.querySelector('#app-status')?.textContent === 'Note history imported.');
 check((await page.locator('#history-list li strong').allTextContents()).join(',') === 'C,E,F♯,G', 'backup did not restore the exact four notes');
 check((await page.locator('#history-list li small').allTextContents()).every(value => value === 'C major'), 'backup did not restore key labels');
 const restoredRows = await page.locator('#history-list li').allTextContents();
 await page.setInputFiles('#import-json', { name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{"version":1,"history":false}') });
+await page.waitForFunction(() => globalThis.document.querySelector('#app-status')?.textContent?.includes('did not contain note history'));
 check((await page.locator('#history-list li').allTextContents()).join('|') === restoredRows.join('|'), 'malformed backup changed note history');
 
 await page.getByRole('button', { name: 'Reset demo' }).click();
@@ -133,6 +145,20 @@ check((await page.locator('#history-list li strong').allTextContents()).join(','
 page.once('dialog', dialog => dialog.accept());
 await page.getByRole('button', { name: 'Clear history' }).click();
 await page.waitForFunction(() => globalThis.document.querySelector('#history-count')?.textContent === '0 NOTES');
+await page.waitForFunction(async () => {
+  const request = globalThis.indexedDB.open('theory-sidecar-v1');
+  const db = await new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+  const state = await new Promise((resolve, reject) => {
+    const read = db.transaction('practice').objectStore('practice').get('current');
+    read.onsuccess = () => resolve(read.result);
+    read.onerror = () => reject(read.error);
+  });
+  db.close();
+  return state?.history?.length === 0;
+});
 await page.reload();
 check((await page.locator('#history-count').textContent()) === '0 NOTES', 'cleared note history returned after reload');
 check(await page.locator('#key-select').inputValue() === 'D', 'clearing history removed the saved key');
@@ -150,6 +176,15 @@ await mobile.setViewportSize({ width: 390, height: 844 });
 await mobile.goto(`${base}/`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
 check(await mobile.getByRole('link', { name: 'Try it with sample data' }).isVisible(), 'mobile first action missing');
 check(await mobile.evaluate(() => globalThis.document.documentElement.scrollWidth <= globalThis.innerWidth), 'mobile page overflows horizontally');
+const mobileCopy = await mobile.locator('main').innerText();
+check(mobileCopy.includes('Play notes with your backing track'), 'first-screen job wording missing');
+check(mobileCopy.includes('For beginning keyboard players'), 'first-screen audience wording missing');
+check(mobileCopy.includes('Note history'), 'note history terminology missing');
+check(!/recent notes|played notes will appear here|any backing track/i.test(mobileCopy), 'stale landing wording remains');
+const actionBox = await mobile.getByRole('link', { name: 'Try it with sample data' }).boundingBox();
+const factsBox = await mobile.locator('.plain-facts').boundingBox();
+check(Boolean(actionBox && actionBox.y + actionBox.height <= 844), 'mobile first action is below the first screen');
+check(Boolean(factsBox && factsBox.y + factsBox.height <= 844), 'mobile facts are below the first screen');
 await mobile.screenshot({ path: `${evidence}/live-mobile.png`, fullPage: true });
 await mobile.close();
 
@@ -205,7 +240,8 @@ const report = {
   fallbacks,
   privacy: { outsideRequests, requestCount: requestRecords.length, nonGetRequests: requestRecords.filter(request => request.method !== 'GET'), requestsWithBodies: requestRecords.filter(request => request.body !== null) },
   consoleErrors: appConsoleErrors,
-  mobile: { width: 390, noHorizontalOverflow: true, firstActionVisible: true },
+  copy: { firstScreenJob: true, firstScreenAudience: true, noteHistoryTerminology: true, stalePhrasesAbsent: true },
+  mobile: { width: 390, noHorizontalOverflow: true, firstActionVisible: true, factsVisible: true },
   securityHeaders: {
     contentSecurityPolicy: headers['content-security-policy'],
     xContentTypeOptions: headers['x-content-type-options'],
