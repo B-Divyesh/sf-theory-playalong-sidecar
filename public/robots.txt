@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://theory-playalong-sidecar.sociobot.in/sitemap.xml
