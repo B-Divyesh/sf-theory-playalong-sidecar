@@ -1,0 +1,11 @@
+{
+  "slug": "theory-playalong-sidecar",
+  "title": "Theory Playalong Sidecar",
+  "summary": "Play notes against a chosen key while your backing track keeps moving.",
+  "territory": "games-creative",
+  "artifact_class": "pwa-offline",
+  "user": "Beginning instrumentalists using a MIDI keyboard who want to see harmony and try ideas while a score or backing track continues playing.",
+  "smallest_useful_product": "Browser MIDI input plus local audio-file playback, a one-octave note/chord map, beat marker, and non-judgmental in-key/out-of-key history.",
+  "monetization": "free",
+  "success_measure": "30% of users connect MIDI and complete three five-minute playalong sessions in their first week."
+}

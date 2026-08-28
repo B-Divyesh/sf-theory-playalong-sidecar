@@ -1,0 +1,72 @@
+[
+  {
+    "id": "harmony-context",
+    "claim": "Shows whether each played note is in the selected key and which diatonic chords include it.",
+    "where": "landing preview, demo workspace, README",
+    "test": "npm test -- --grep @claim:harmony-context",
+    "sandbox": "fresh browser context at /demo; play E and F-sharp against C major"
+  },
+  {
+    "id": "midi-input",
+    "claim": "Reads note-on messages from a connected MIDI keyboard.",
+    "where": "landing copy, MIDI control, README",
+    "test": "npm test -- --grep @claim:midi-input",
+    "sandbox": "fresh browser context at /demo with a synthetic Web MIDI input"
+  },
+  {
+    "id": "local-audio",
+    "claim": "Audio, MIDI messages, and demo notes are not sent to a third party or saved as real data.",
+    "where": "landing facts, demo banner, privacy page, README",
+    "test": "npm test -- --grep @claim:local-audio",
+    "sandbox": "fresh browser context at /demo; intercept all requests and inspect browser storage"
+  },
+  {
+    "id": "beat-marker",
+    "claim": "Shows an eight-beat marker that advances with audio playback at the chosen tempo.",
+    "where": "landing workspace, demo workspace, README",
+    "test": "npm test -- --grep @claim:beat-marker",
+    "sandbox": "fresh browser context at /demo; play the 96 BPM sample and observe the second beat"
+  },
+  {
+    "id": "csv-export",
+    "claim": "Exports note history as CSV.",
+    "where": "history toolbar, privacy page, README",
+    "test": "npm test -- --grep @claim:csv-export",
+    "sandbox": "fresh browser context at /demo; compare downloaded CSV rows with sample history"
+  },
+  {
+    "id": "history-portability",
+    "claim": "Exports and imports note history as JSON.",
+    "where": "history toolbar, README",
+    "test": "npm test -- --grep @claim:history-portability",
+    "sandbox": "fresh browser context at /demo; export the four sample notes and import that file"
+  },
+  {
+    "id": "local-history",
+    "claim": "Keeps settings and note history in this browser but does not store audio files.",
+    "where": "landing privacy section, privacy page, README",
+    "test": "npm test -- --grep @claim:local-history",
+    "sandbox": "fresh browser context at /; play a note, choose a local audio fixture, reload, and inspect both states"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after the first visit.",
+    "where": "landing facts, README",
+    "test": "npm test -- --grep @claim:offline-reload",
+    "sandbox": "fresh browser context at /demo; wait for service worker, set context offline, reload and play C"
+  },
+  {
+    "id": "free-use",
+    "claim": "Free to use with no account or payment gate.",
+    "where": "landing facts, terms page, README",
+    "test": "npm test -- --grep @claim:free-use",
+    "sandbox": "fresh browser context; enter demo from landing and assert no credential gate"
+  },
+  {
+    "id": "keyboard-fallback",
+    "claim": "The screen keys and computer keys A–K work without MIDI hardware.",
+    "where": "workspace help, demo intro, README",
+    "test": "npm test -- --grep @claim:keyboard-fallback",
+    "sandbox": "fresh 390px browser context at /demo; press the A key and observe C"
+  }
+]
