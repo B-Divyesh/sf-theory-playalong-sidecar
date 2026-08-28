@@ -8,7 +8,7 @@
   },
   {
     "id": "midi-input",
-    "claim": "Reads note-on messages from a connected MIDI keyboard.",
+    "claim": "Reads notes played on a connected MIDI keyboard.",
     "where": "landing copy, MIDI control, README",
     "test": "npm test -- --grep @claim:midi-input",
     "sandbox": "fresh browser context at /demo with a synthetic Web MIDI input"
@@ -71,10 +71,10 @@
   },
   {
     "id": "demo-ready",
-    "claim": "The demo opens with a playable C-major groove and four recent notes.",
+    "claim": "The demo opens with a playable C-major groove and four notes in its note history.",
     "where": "landing demo action, demo intro, README",
     "test": "npm test -- --grep @claim:demo-ready",
-    "sandbox": "fresh browser context at /?demo=1; assert playable sample audio and exactly C, E, F-sharp, and G sample notes"
+    "sandbox": "fresh browser context at /?demo=1; start the sample and assert playback advances, remains unpaused, and shows exactly C, E, F-sharp, and G"
   },
   {
     "id": "playalong-continuity",
@@ -82,5 +82,19 @@
     "where": "landing how-it-works, README",
     "test": "npm test -- --grep @claim:playalong-continuity",
     "sandbox": "fresh browser context at /demo; start sample audio, use all three input paths, and assert audio time keeps increasing"
+  },
+  {
+    "id": "no-third-party-requests",
+    "claim": "Makes no third-party requests during real or demo practice; audio files, MIDI messages, and note history are not uploaded.",
+    "where": "privacy page, README",
+    "test": "npm test -- --grep @claim:no-third-party-requests",
+    "sandbox": "fresh browser context; record cold load, real and demo notes, local audio playback, synthetic MIDI, exports, and reloads; allow only same-origin GET or local blob requests"
+  },
+  {
+    "id": "history-deletion",
+    "claim": "Clear history removes note history from this browser.",
+    "where": "privacy page, note history controls",
+    "test": "npm test -- --grep @claim:history-deletion",
+    "sandbox": "fresh real-mode context; save settings and notes, confirm Clear history, reload, and assert note history stays empty while settings remain"
   }
 ]

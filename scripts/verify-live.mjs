@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { mkdirSync, writeFileSync } from 'node:fs';
 
 const base = process.argv[2] ?? 'https://theory-playalong-sidecar.sociobot.in';
-const evidence = process.argv[3] ?? '.factory/evidence/polish-2';
+const evidence = process.argv[3] ?? '.factory/evidence/polish-3';
 mkdirSync(evidence, { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
@@ -11,12 +11,38 @@ const context = await browser.newContext({ viewport: { width: 1440, height: 900 
 const page = await context.newPage();
 const consoleErrors = [];
 const outsideRequests = [];
+const requestRecords = [];
+await page.addInitScript(() => {
+  const input = { onmidimessage: null };
+  Object.defineProperty(navigator, 'requestMIDIAccess', { configurable: true, value: async () => ({ inputs: new Map([['live-check-midi', input]]) }) });
+  Object.defineProperty(globalThis, '__testMidiInput', { configurable: true, value: input });
+});
 page.on('console', message => { if (message.type() === 'error') consoleErrors.push(message.text()); });
 page.on('pageerror', error => consoleErrors.push(String(error)));
 page.on('request', request => {
   const url = new URL(request.url());
   if (url.origin !== new URL(base).origin && url.protocol !== 'blob:') outsideRequests.push(request.url());
+  requestRecords.push({ url: request.url(), method: request.method(), body: request.postData() });
 });
+
+function testWav(seconds = 2) {
+  const rate = 8_000;
+  const samples = rate * seconds;
+  const buffer = Buffer.alloc(44 + samples * 2);
+  buffer.write('RIFF', 0);
+  buffer.writeUInt32LE(36 + samples * 2, 4);
+  buffer.write('WAVEfmt ', 8);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(rate, 24);
+  buffer.writeUInt32LE(rate * 2, 28);
+  buffer.writeUInt16LE(2, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write('data', 36);
+  buffer.writeUInt32LE(samples * 2, 40);
+  return buffer;
+}
 
 function check(value, message) {
   if (!value) throw new Error(message);
@@ -43,7 +69,7 @@ for (const [path, title, heading] of [
   check(result.title === title, `${path} title mismatch`);
   check(result.h1.length === 1 && result.h1[0] === heading, `${path} heading mismatch`);
   check(result.main === 1, `${path} must have one main`);
-  check(result.build === 'v1.0.3', `${path} build identifier mismatch`);
+  check(result.build === 'v1.0.4', `${path} build identifier mismatch`);
   check(result.ogTitle === title && result.twitterTitle === title, `${path} social metadata mismatch`);
   const axe = await new AxeBuilder({ page }).analyze();
   const serious = axe.violations.filter(item => ['serious', 'critical'].includes(item.impact ?? ''));
@@ -52,12 +78,43 @@ for (const [path, title, heading] of [
 }
 
 await page.goto(`${base}/`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
-await page.getByRole('button', { name: 'Play G', exact: true }).click();
+await page.locator('#key-select').selectOption({ label: 'D' });
+await page.locator('#mode-select').selectOption('minor');
+await page.locator('#bpm').fill('108');
+await page.locator('#bpm').press('Tab');
+await page.getByRole('button', { name: 'Play D', exact: true }).click();
+await page.setInputFiles('#audio-file', { name: 'live-private.wav', mimeType: 'audio/wav', buffer: testWav() });
+await page.locator('#audio-player').evaluate(audio => audio.play());
+await page.getByRole('button', { name: 'Connect MIDI' }).click();
+await page.evaluate(() => globalThis.__testMidiInput.onmidimessage({ data: new Uint8Array([0x90, 69, 100]) }));
+await page.waitForFunction(() => globalThis.document.querySelector('#audio-player')?.currentTime > 0.1);
+const realCsv = page.waitForEvent('download');
+await page.getByRole('button', { name: 'Export CSV' }).click();
+await realCsv;
+await page.reload();
+check(await page.locator('#key-select').inputValue() === 'D', 'real key did not persist');
+check(await page.locator('#mode-select').inputValue() === 'minor', 'real scale did not persist');
+check(await page.locator('#bpm').inputValue() === '108', 'real tempo did not persist');
+check((await page.locator('#history-list li strong').allTextContents()).join(',') === 'A,D', 'real note history did not persist');
 await page.getByRole('link', { name: 'Try it with sample data' }).click();
 check(new URL(page.url()).searchParams.get('demo') === '1', 'first action did not enter ?demo=1');
 check(await page.getByLabel('Demo mode').isVisible(), 'demo banner missing');
 check(await page.locator('#history-list li').count() === 4, 'demo did not start with four notes');
-await page.getByRole('button', { name: 'Play C', exact: true }).first().click();
+
+const backupDownload = page.waitForEvent('download');
+await page.getByRole('button', { name: 'Export backup' }).click();
+const backup = await backupDownload;
+const backupBytes = await (await backup.createReadStream()).toArray();
+const backupText = Buffer.concat(backupBytes).toString('utf8');
+await page.getByRole('button', { name: 'Play B', exact: true }).click();
+check(await page.locator('#history-list li').count() === 5, 'demo mutation did not add a fifth note');
+await page.setInputFiles('#import-json', { name: 'live-backup.json', mimeType: 'application/json', buffer: Buffer.from(backupText) });
+check((await page.locator('#history-list li strong').allTextContents()).join(',') === 'C,E,F♯,G', 'backup did not restore the exact four notes');
+check((await page.locator('#history-list li small').allTextContents()).every(value => value === 'C major'), 'backup did not restore key labels');
+const restoredRows = await page.locator('#history-list li').allTextContents();
+await page.setInputFiles('#import-json', { name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{"version":1,"history":false}') });
+check((await page.locator('#history-list li').allTextContents()).join('|') === restoredRows.join('|'), 'malformed backup changed note history');
+
 await page.getByRole('button', { name: 'Reset demo' }).click();
 check(await page.locator('#history-list li').count() === 4, 'demo reset did not restore four notes');
 await page.locator('#key-select').selectOption({ label: 'E' });
@@ -68,9 +125,19 @@ await page.getByRole('button', { name: 'Play sample groove' }).click();
 await page.waitForFunction(() => (globalThis.document.querySelector('#audio-player'))?.currentTime > 0.2);
 await page.keyboard.press('a');
 check(!(await page.locator('#audio-player').evaluate(audio => audio.paused)), 'keyboard input paused sample audio');
+check((await page.locator('#audio-player').evaluate(audio => audio.currentTime)) > 0.2, 'sample audio did not advance');
+check((await page.locator('#audio-status').textContent()) === 'SAMPLE PLAYING', 'sample status did not confirm playback');
 await page.screenshot({ path: `${evidence}/live-demo-desktop.png`, fullPage: true });
 await page.getByRole('link', { name: 'Start for real' }).click();
-check(await page.locator('#history-list li').count() === 1, 'demo changed real note history');
+check((await page.locator('#history-list li strong').allTextContents()).join(',') === 'A,D', 'demo changed real note history');
+page.once('dialog', dialog => dialog.accept());
+await page.getByRole('button', { name: 'Clear history' }).click();
+await page.waitForFunction(() => globalThis.document.querySelector('#history-count')?.textContent === '0 NOTES');
+await page.reload();
+check((await page.locator('#history-count').textContent()) === '0 NOTES', 'cleared note history returned after reload');
+check(await page.locator('#key-select').inputValue() === 'D', 'clearing history removed the saved key');
+check(await page.locator('#mode-select').inputValue() === 'minor', 'clearing history removed the saved scale');
+check(await page.locator('#bpm').inputValue() === '108', 'clearing history removed the saved tempo');
 
 await page.goto(`${base}/terms`);
 await page.getByRole('link', { name: 'Home', exact: true }).click();
@@ -88,7 +155,7 @@ await mobile.close();
 
 const appConsoleErrors = [...consoleErrors];
 const fallbacks = {};
-for (const path of ['/offline.html', '/missing-polish-2']) {
+for (const path of ['/offline.html', '/missing-polish-3']) {
   const response = await context.request.get(`${base}${path}`);
   const body = await response.text();
   await page.goto(`${base}${path}`, { waitUntil: 'domcontentloaded', timeout: 60_000 });
@@ -106,11 +173,11 @@ for (const path of ['/offline.html', '/missing-polish-2']) {
 }
 check(fallbacks['/offline.html'].status === 200, 'offline document did not return 200');
 check(fallbacks['/offline.html'].title === 'Offline — Theory Playalong Sidecar', 'offline title mismatch');
-check(fallbacks['/missing-polish-2'].status === 404, 'unknown route did not return HTTP 404');
-check(fallbacks['/missing-polish-2'].title === 'Theory Playalong Sidecar — page not found', '404 title mismatch');
+check(fallbacks['/missing-polish-3'].status === 404, 'unknown route did not return HTTP 404');
+check(fallbacks['/missing-polish-3'].title === 'Theory Playalong Sidecar — page not found', '404 title mismatch');
 for (const value of Object.values(fallbacks)) {
   check(value.privacyLink >= 1 && value.termsLink >= 1, 'fallback legal navigation missing');
-  check(value.build?.trim() === 'v1.0.3', 'fallback build identifier mismatch');
+  check(value.build?.trim() === 'v1.0.4', 'fallback build identifier mismatch');
   check(value.seriousAxeViolations === 0, 'fallback has serious accessibility findings');
 }
 
@@ -133,8 +200,10 @@ const report = {
   base,
   routes: routeEvidence,
   demo: { queryEntry: true, banner: true, resetToFour: true, realHistoryPreserved: true, selectedKeyChanged: true, audioContinued: true },
+  backup: { restoredExactRows: true, restoredKeyLabels: true, malformedFilePreservedRows: true },
+  historyDeletion: { persistedAfterReload: true, settingsPreserved: true },
   fallbacks,
-  privacy: { outsideRequests },
+  privacy: { outsideRequests, requestCount: requestRecords.length, nonGetRequests: requestRecords.filter(request => request.method !== 'GET'), requestsWithBodies: requestRecords.filter(request => request.body !== null) },
   consoleErrors: appConsoleErrors,
   mobile: { width: 390, noHorizontalOverflow: true, firstActionVisible: true },
   securityHeaders: {
@@ -147,5 +216,6 @@ const report = {
 writeFileSync(`${evidence}/live-verification.json`, `${JSON.stringify(report, null, 2)}\n`);
 await browser.close();
 check(outsideRequests.length === 0, `third-party requests detected: ${outsideRequests.join(', ')}`);
+check(requestRecords.every(request => request.method === 'GET' && request.body === null), 'practice made an upload request');
 check(appConsoleErrors.length === 0, `console errors detected: ${appConsoleErrors.join(', ')}`);
 console.log(JSON.stringify(report, null, 2));

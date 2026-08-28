@@ -3,7 +3,7 @@
 - URL: `https://theory-playalong-sidecar.sociobot.in/?demo=1` (the permanent
   `/demo` route is also supported; local: `http://127.0.0.1:4173/?demo=1`)
 - Sample: an eight-second procedural C-major groove, C-major context, 96 beats per minute,
-  and four recent notes: C, E, F-sharp, and G.
+  and four notes in its note history: C, E, F-sharp, and G.
 - Interaction: press the on-screen keys or A–K. The same note-analysis path is
   used for demo, pointer, computer keyboard, and MIDI input.
 - Reset: select **Reset demo** in the persistent demo banner.

@@ -46,7 +46,7 @@ test('landing has the required structure and clear first action', async ({ page 
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.getByRole('link', { name: 'Try it with sample data' })).toBeVisible();
   await expect(page.getByText('Opens a ready C-major practice set.')).toBeVisible();
-  await expect(page.locator('.site-footer .build')).toHaveText('v1.0.3');
+  await expect(page.locator('.site-footer .build')).toHaveText('v1.0.4');
   await page.keyboard.press('Tab');
   await expect(page.getByRole('link', { name: 'Skip to main content' })).toBeFocused();
   const axe = await new AxeBuilder({ page }).analyze();
@@ -62,6 +62,10 @@ test('@claim:demo-ready the direct query demo is isolated, resettable, playable,
   await expect.poll(() => page.locator('#audio-player').evaluate((audio: HTMLAudioElement) => audio.duration)).toBeGreaterThan(7.9);
   await expect(page.locator('#history-list li strong')).toHaveText(['C', 'E', 'F♯', 'G']);
   await expect(page.locator('#history-list li')).toHaveCount(4);
+  await page.getByRole('button', { name: 'Play sample groove' }).click();
+  await expect.poll(() => page.locator('#audio-player').evaluate((audio: HTMLAudioElement) => audio.currentTime)).toBeGreaterThan(0.2);
+  expect(await page.locator('#audio-player').evaluate((audio: HTMLAudioElement) => audio.paused)).toBe(false);
+  await expect(page.locator('#audio-status')).toHaveText('SAMPLE PLAYING');
   await page.keyboard.press('a');
   await expect(page.locator('#history-list li')).toHaveCount(5);
   await page.getByRole('button', { name: 'Reset demo' }).click();
@@ -193,17 +197,101 @@ test('@claim:csv-export exports every visible demo history row', async ({ page }
   expect(csv.trim().split('\n')).toHaveLength(count + 1);
 });
 
-test('@claim:history-portability exports and imports note history as JSON', async ({ page }) => {
+test('@claim:history-portability restores exact note history and rejects malformed backups', async ({ page }) => {
   await page.goto('/demo');
+  const originalRows = await page.locator('#history-list li').allTextContents();
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export backup' }).click();
   const download = await downloadPromise;
   const chunks = await (await download.createReadStream()).toArray();
   const saved = Buffer.concat(chunks).toString('utf8');
   expect(JSON.parse(saved).history).toHaveLength(4);
+  await page.getByRole('button', { name: 'Play B', exact: true }).click();
+  await expect(page.locator('#history-list li strong')).toHaveText(['B', 'C', 'E', 'F♯', 'G']);
   await page.setInputFiles('#import-json', { name: 'sidecar.json', mimeType: 'application/json', buffer: Buffer.from(saved) });
   await expect(page.locator('#app-status')).toHaveText('Note history imported.');
   await expect(page.locator('#history-list li')).toHaveCount(4);
+  await expect(page.locator('#history-list li strong')).toHaveText(['C', 'E', 'F♯', 'G']);
+  await expect(page.locator('#history-list li small')).toHaveText(['C major', 'C major', 'C major', 'C major']);
+  expect(await page.locator('#history-list li').allTextContents()).toEqual(originalRows);
+
+  const restoredRows = await page.locator('#history-list li').allTextContents();
+  await page.setInputFiles('#import-json', { name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from('{"version":1,"history":"not a list"}') });
+  await expect(page.locator('#app-status')).toContainText('did not contain note history');
+  expect(await page.locator('#history-list li').allTextContents()).toEqual(restoredRows);
+});
+
+test('@claim:no-third-party-requests keeps real and demo practice local', async ({ page }) => {
+  await installSyntheticMidi(page);
+  const requests: Array<{url:string;method:string;body:string|null}> = [];
+  page.on('request', request => requests.push({ url: request.url(), method: request.method(), body: request.postData() }));
+
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Play G', exact: true }).click();
+  await page.setInputFiles('#audio-file', { name: 'private-practice.wav', mimeType: 'audio/wav', buffer: testWav() });
+  await page.locator('#audio-player').evaluate((audio: HTMLAudioElement) => audio.play());
+  await page.getByRole('button', { name: 'Connect MIDI' }).click();
+  await sendMidi(page, 69);
+  await expect.poll(() => page.locator('#audio-player').evaluate((audio: HTMLAudioElement) => audio.currentTime)).toBeGreaterThan(0.1);
+  const realDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export CSV' }).click();
+  await realDownload;
+  await page.reload();
+  await expect(page.locator('#history-list li').first()).toContainText('A');
+
+  await page.goto('/?demo=1');
+  await page.getByRole('button', { name: 'Play sample groove' }).click();
+  await page.getByRole('button', { name: 'Play C', exact: true }).first().click();
+  const demoDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export backup' }).click();
+  await demoDownload;
+  await page.reload();
+  await expect(page.getByLabel('Demo mode')).toBeVisible();
+
+  const origin = 'http://127.0.0.1:4173';
+  expect(requests.length).toBeGreaterThan(0);
+  for (const request of requests) {
+    const url = new URL(request.url);
+    expect(url.origin === origin || (url.protocol === 'blob:' && request.url.startsWith(`blob:${origin}/`))).toBe(true);
+    expect(request.method).toBe('GET');
+    expect(request.body).toBeNull();
+  }
+});
+
+test('@claim:history-deletion clears saved note history and keeps settings', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#key-select').selectOption({ label: 'D' });
+  await page.locator('#mode-select').selectOption('minor');
+  await page.locator('#bpm').fill('108');
+  await page.locator('#bpm').press('Tab');
+  await page.getByRole('button', { name: 'Play D', exact: true }).click();
+  await page.getByRole('button', { name: 'Play F', exact: true }).click();
+  await expect(page.locator('#history-list li')).toHaveCount(2);
+  page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Clear history' }).click();
+  await expect(page.locator('#app-status')).toHaveText('Note history cleared.');
+  await expect(page.locator('#history-count')).toHaveText('0 NOTES');
+  await expect(page.locator('#history-list li.empty')).toHaveText('Played notes will appear in your note history.');
+  await expect.poll(() => page.evaluate(async () => {
+    const request = indexedDB.open('theory-sidecar-v1');
+    const db = await new Promise<IDBDatabase>((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const state = await new Promise<{history:unknown[]} | undefined>((resolve, reject) => {
+      const read = db.transaction('practice').objectStore('practice').get('current');
+      read.onsuccess = () => resolve(read.result);
+      read.onerror = () => reject(read.error);
+    });
+    db.close();
+    return state?.history.length;
+  })).toBe(0);
+  await page.reload();
+  await expect(page.locator('#history-count')).toHaveText('0 NOTES');
+  await expect(page.locator('#history-list li.empty')).toHaveText('Played notes will appear in your note history.');
+  await expect(page.locator('#key-select')).toHaveValue('D');
+  await expect(page.locator('#mode-select')).toHaveValue('minor');
+  await expect(page.locator('#bpm')).toHaveValue('108');
 });
 
 test('@claim:local-history keeps every setting and notes but not an audio file after reload', async ({ page }) => {
@@ -325,6 +413,38 @@ test('@claim:playalong-continuity all input paths leave sample audio playing', a
   await expect(page.locator('#audio-status')).toHaveText('SAMPLE PLAYING');
 });
 
+test('demo changes never read or overwrite real practice data', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#key-select').selectOption({ label: 'A' });
+  await page.locator('#mode-select').selectOption('minor');
+  await page.getByRole('button', { name: 'Play A', exact: true }).click();
+  await expect.poll(async () => page.evaluate(async () => (await indexedDB.databases()).some(db => db.name === 'theory-sidecar-v1'))).toBe(true);
+  await page.getByRole('link', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL(/\?demo=1$/);
+  await expect(page.locator('#key-select')).toHaveValue('C');
+  await expect(page.locator('#history-list li strong')).toHaveText(['C', 'E', 'F♯', 'G']);
+  await page.getByRole('button', { name: 'Play B', exact: true }).click();
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.locator('#history-list li strong')).toHaveText(['C', 'E', 'F♯', 'G']);
+  await page.getByRole('link', { name: 'Start for real' }).click();
+  await expect(page.locator('#key-select')).toHaveValue('A');
+  await expect(page.locator('#mode-select')).toHaveValue('minor');
+  await expect(page.locator('#history-list li strong')).toHaveText(['A']);
+});
+
+test('claim registry and tagged browser proofs match one-to-one', async () => {
+  const claims = JSON.parse(readFileSync('.factory/claims.json', 'utf8')) as Array<{id:string;test:string}>;
+  const source = readFileSync('tests/app.spec.ts', 'utf8');
+  const ids = claims.map(claim => claim.id);
+  expect(new Set(ids).size).toBe(ids.length);
+  for (const claim of claims) {
+    expect(claim.test).toBe(`npm test -- --grep @claim:${claim.id}`);
+    expect(source.match(new RegExp(`@claim:${claim.id}(?![a-z0-9-])`, 'g')) ?? []).toHaveLength(1);
+  }
+  const tags = [...source.matchAll(/@claim:([a-z0-9-]+)/g)].map(match => match[1]);
+  expect([...new Set(tags)].sort()).toEqual([...ids].sort());
+});
+
 test('fallback documents have complete metadata, legal links, plain copy, and matching versions', async () => {
   const packageVersion = (JSON.parse(readFileSync('package.json', 'utf8')) as {version:string}).version;
   const manifest = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8')) as {start_url:string;short_name:string};
@@ -380,6 +500,8 @@ test('copy audit tracks the current plain-language landing strings', async ({ pa
     'Choose a key and audio file',
     'Play notes while audio continues',
     'See where each note fits',
+    'See the note number in the key, matching chords, and note history.',
+    'Note history',
     'Your practice data'
   ];
   await page.goto('/');

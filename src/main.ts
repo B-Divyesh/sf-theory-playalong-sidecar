@@ -48,7 +48,7 @@ function landing(): string {
       <figure class="hero-art"><picture><img src="/assets/harmony-console.32a49c4c.webp" width="1200" height="800" alt="A pixel keyboard sends glowing notes into a twelve-note harmony wheel." fetchpriority="high" decoding="async"></picture><figcaption>Play a note. See its place in the key.</figcaption></figure>
     </section>
     ${workspace(false, false)}
-    <section class="how" aria-labelledby="how-title"><h2 id="how-title">How it works</h2><ol class="steps"><li><span>01</span><div><h3>Choose a key and audio file</h3><p>Pick a key, then load your own audio file.</p></div></li><li><span>02</span><div><h3>Play notes while audio continues</h3><p>Use MIDI or the screen keys while the audio continues.</p></div></li><li><span>03</span><div><h3>See where each note fits</h3><p>See the note number in the key, matching chords, and recent notes.</p></div></li></ol></section>
+    <section class="how" aria-labelledby="how-title"><h2 id="how-title">How it works</h2><ol class="steps"><li><span>01</span><div><h3>Choose a key and audio file</h3><p>Pick a key, then load your own audio file.</p></div></li><li><span>02</span><div><h3>Play notes while audio continues</h3><p>Use MIDI or the screen keys while the audio continues.</p></div></li><li><span>03</span><div><h3>See where each note fits</h3><p>See the note number in the key, matching chords, and note history.</p></div></li></ol></section>
     <section class="limits" aria-labelledby="limits-title"><h2 id="limits-title">Your practice data</h2><div><p>Your settings and note history stay in this browser. Audio files are not stored.</p></div></section>
   </main>`);
 }
@@ -80,7 +80,7 @@ function workspace(isDemo: boolean, isPage = true): string {
         <div class="chord-area"><${panelSubheading}>Chords that include it</${panelSubheading}><div id="chord-map" class="chord-map"><p>Chord names appear after you play.</p></div></div>
       </section>
       <section class="keyboard-panel" aria-labelledby="keyboard-title"><div class="keyboard-heading"><div><span class="panel-number">C</span><${panelHeading} id="keyboard-title">Notes from C to C</${panelHeading}></div><p>Computer keys: A W S E D F T G Y H U J K</p></div><div class="keyboard-scroll"><div class="piano" id="piano" role="group" aria-label="Playable notes from C to C">${pianoKeys()}</div></div><p id="scale-summary" class="scale-summary"></p></section>
-      <section class="history-panel" aria-labelledby="history-title"><div class="panel-heading"><div><span class="panel-number">D</span><${panelHeading} id="history-title">Recent notes</${panelHeading}></div><span id="history-count" class="readout">0 NOTES</span></div><ol id="history-list" class="history-list" tabindex="0" aria-label="Scrollable recent note history"><li class="empty">Played notes will appear here.</li></ol><div class="history-actions"><button class="text-button" id="clear-history" type="button">Clear history</button><button class="text-button" id="export-csv" type="button">Export CSV</button><button class="text-button" id="export-json" type="button">Export backup</button><label class="text-button import-label">Import backup<input id="import-json" type="file" accept="application/json,.json"></label></div></section>
+      <section class="history-panel" aria-labelledby="history-title"><div class="panel-heading"><div><span class="panel-number">D</span><${panelHeading} id="history-title">Note history</${panelHeading}></div><span id="history-count" class="readout">0 NOTES</span></div><ol id="history-list" class="history-list" tabindex="0" aria-label="Scrollable note history"><li class="empty">Played notes will appear in your note history.</li></ol><div class="history-actions"><button class="text-button" id="clear-history" type="button">Clear history</button><button class="text-button" id="export-csv" type="button">Export CSV</button><button class="text-button" id="export-json" type="button">Export backup</button><label class="text-button import-label">Import backup<input id="import-json" type="file" accept="application/json,.json"></label></div></section>
     </div>
   </${tag}>`;
 }
@@ -93,7 +93,7 @@ function pianoKeys(): string {
 }
 
 function textPage(kind: 'privacy'|'terms'): string {
-  const privacy = `<h1 tabindex="-1">Your practice stays on this device</h1><p class="lede">Theory Playalong Sidecar has no account and makes no third-party requests.</p><section><h2>What the app stores</h2><p>Your key, scale, tempo, and recent notes stay in this browser. Demo changes are discarded when you leave.</p><h2>What the app does not send</h2><p>Audio files, MIDI messages, and note history are not uploaded.</p><h2>Your controls</h2><p>Use the history buttons to export your notes. Clear history removes saved notes from this browser.</p><h2>Contact</h2><p>For privacy questions, email <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p></section>`;
+  const privacy = `<h1 tabindex="-1">Your practice stays on this device</h1><p class="lede">There is no account. Theory Playalong Sidecar makes no third-party requests.</p><section><h2>What the app stores</h2><p>Your key, scale, tempo, and note history stay in this browser. Demo changes are discarded when you leave.</p><h2>What the app does not send</h2><p>Audio files, MIDI messages, and note history are not uploaded.</p><h2>Your controls</h2><p>Use the buttons under Note history to export it. Clear history removes your note history from this browser.</p><h2>Contact</h2><p>For privacy questions, email <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a>.</p></section>`;
   const terms = `<h1 tabindex="-1">Terms for Theory Playalong Sidecar</h1><p class="lede">These terms apply when you use Theory Playalong Sidecar.</p><section><h2>The service</h2><p>The app is free. It shows note relationships for reference and does not promise learning results.</p><h2>Your files</h2><p>You keep ownership of files you open. Only use audio that you have permission to use.</p><h2>Availability</h2><p>The app is provided as available, without warranties. MIDI support depends on your browser and device.</p><h2>Contact</h2><p>For terms questions, email <a href="mailto:hello@sociobot.in">hello@sociobot.in</a>.</p></section>`;
   return shell(`<main id="main" class="text-page">${kind==='privacy'?privacy:terms}</main>`);
 }
@@ -188,7 +188,7 @@ async function bindWorkspace(isDemo: boolean): Promise<void> {
   const renderHistory=()=>{
     const list=document.querySelector<HTMLOListElement>('#history-list')!;
     document.querySelector('#history-count')!.textContent=`${state.history.length} ${state.history.length===1?'NOTE':'NOTES'}`;
-    list.innerHTML=state.history.length?state.history.slice(0,24).map(note=>`<li class="${note.inKey?'inside':'outside'}"><strong>${note.name}</strong><span>${note.inKey?'◆ in key':'◇ outside key'}</span><small>${note.keyName}</small></li>`).join(''):'<li class="empty">Played notes will appear here.</li>';
+    list.innerHTML=state.history.length?state.history.slice(0,24).map(note=>`<li class="${note.inKey?'inside':'outside'}"><strong>${note.name}</strong><span>${note.inKey?'◆ in key':'◇ outside key'}</span><small>${note.keyName}</small></li>`).join(''):'<li class="empty">Played notes will appear in your note history.</li>';
   };
   const setKey=()=>{state.keyName=keySelect.value;state.mode=modeSelect.value as Mode;renderContext();persist();};
   keySelect.addEventListener('change',setKey);modeSelect.addEventListener('change',setKey);
@@ -240,11 +240,26 @@ async function bindWorkspace(isDemo: boolean): Promise<void> {
   audio.addEventListener('ended',stopBeatLoop);
   audio.addEventListener('seeked',beat);
   cleanup.push(stopBeatLoop);
-  document.querySelector('#clear-history')!.addEventListener('click',()=>{if(!confirm(`Clear ${state.history.length} recent notes?`))return;state.history=[];renderHistory();persist();announce('Note history cleared.');});
+  document.querySelector('#clear-history')!.addEventListener('click',()=>{if(!confirm(`Clear ${state.history.length} notes from note history?`))return;state.history=[];renderHistory();persist();announce('Note history cleared.');});
   document.querySelector('#export-csv')!.addEventListener('click',()=>download('theory-sidecar-history.csv',`note,in_key,key,played_at\n${state.history.map(n=>`${n.name},${n.inKey},${n.keyName},${n.playedAt}`).join('\n')}`,'text/csv'));
   document.querySelector('#export-json')!.addEventListener('click',()=>download('theory-sidecar-history.json',JSON.stringify({version:1,history:state.history},null,2),'application/json'));
-  document.querySelector<HTMLInputElement>('#import-json')!.addEventListener('change',async event=>{try{const imported=JSON.parse(await (event.target as HTMLInputElement).files![0].text()) as {history:HistoryNote[]};if(!Array.isArray(imported.history))throw new Error();state.history=imported.history.slice(0,64);renderHistory();persist();announce('Note history imported.');}catch{announce('That backup file did not contain note history. Choose an exported backup file.');}});
+  document.querySelector<HTMLInputElement>('#import-json')!.addEventListener('change',async event=>{try{
+    const imported=JSON.parse(await (event.target as HTMLInputElement).files![0].text()) as {version?:unknown;history?:unknown};
+    if(imported.version!==1||!Array.isArray(imported.history)||!imported.history.every(isHistoryNote))throw new Error();
+    state.history=structuredClone(imported.history.slice(0,64));renderHistory();persist();announce('Note history imported.');
+  }catch{announce('That backup file did not contain note history. Choose an exported backup file.');}});
   renderContext();renderHistory();
+}
+
+function isHistoryNote(value: unknown): value is HistoryNote {
+  if(!value||typeof value!=='object')return false;
+  const note=value as Record<string,unknown>;
+  return typeof note.id==='string'&&note.id.length>0
+    &&Number.isInteger(note.midi)&&Number(note.midi)>=0&&Number(note.midi)<=127
+    &&typeof note.name==='string'&&(NOTE_NAMES as readonly string[]).includes(note.name)
+    &&typeof note.inKey==='boolean'
+    &&typeof note.keyName==='string'&&/^(?:C|C♯|D|D♯|E|F|F♯|G|G♯|A|A♯|B) (?:major|minor)$/.test(note.keyName)
+    &&typeof note.playedAt==='string'&&!Number.isNaN(Date.parse(note.playedAt));
 }
 
 function download(name:string,contents:string,type:string):void{const url=URL.createObjectURL(new Blob([contents],{type}));const link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),0);}
