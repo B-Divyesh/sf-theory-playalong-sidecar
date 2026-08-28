@@ -66,9 +66,12 @@ Cold production checks after deployment:
   revised 404 title and heading.
 - Desktop and 390 px mobile Axe scans found zero serious or critical issues;
   no mobile horizontal overflow and no console errors occurred on root.
+- Live Lighthouse mobile: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; LCP 1.202 s, CLS 0, TBT 55 ms.
 - Evidence: `.factory/evidence/polish-1-live.json`,
   `.factory/evidence/polish-1-desktop.png`, and
-  `.factory/evidence/polish-1-mobile.png`.
+  `.factory/evidence/polish-1-mobile.png`, plus
+  `.factory/evidence/polish-1-lighthouse.json`.
 
 ## Run locally
 

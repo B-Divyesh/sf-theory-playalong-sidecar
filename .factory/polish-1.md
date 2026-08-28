@@ -16,3 +16,7 @@
 
 No finding from `.factory/review-1.md` remains open. There were no earlier
 `.factory/review-*.md` or `.factory/polish-*.md` files to carry forward.
+
+Live Lighthouse mobile also scored Performance 100, Accessibility 100, Best
+Practices 100, and SEO 100 (LCP 1.202 s, CLS 0, TBT 55 ms); see
+`.factory/evidence/polish-1-lighthouse.json`.
