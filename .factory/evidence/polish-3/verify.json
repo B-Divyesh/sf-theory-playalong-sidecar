@@ -1,0 +1,14 @@
+{
+  "url": "https://theory-playalong-sidecar.sociobot.in/?demo=1",
+  "loadMs": 930,
+  "errors": [],
+  "a11y": {
+    "title": "Demo — Theory Playalong Sidecar",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1048
+  }
+}

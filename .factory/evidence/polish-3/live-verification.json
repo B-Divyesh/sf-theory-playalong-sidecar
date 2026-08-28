@@ -1,0 +1,128 @@
+{
+  "checkedAt": "2026-08-28T22:28:01.935Z",
+  "base": "https://theory-playalong-sidecar.sociobot.in",
+  "routes": {
+    "/": {
+      "title": "Theory Playalong Sidecar — play with a backing track",
+      "h1": [
+        "Play notes with your backing track"
+      ],
+      "canonical": "https://theory-playalong-sidecar.sociobot.in/",
+      "description": "Play a MIDI keyboard with a local backing track and see each note in the key you choose.",
+      "ogTitle": "Theory Playalong Sidecar — play with a backing track",
+      "ogDescription": "Play a MIDI keyboard with a local backing track and see each note in the key you choose.",
+      "twitterTitle": "Theory Playalong Sidecar — play with a backing track",
+      "twitterDescription": "Play a MIDI keyboard with a local backing track and see each note in the key you choose.",
+      "main": 1,
+      "build": "v1.0.4",
+      "seriousAxeViolations": 0
+    },
+    "/demo": {
+      "title": "Demo — Theory Playalong Sidecar",
+      "h1": [
+        "Try notes in C major"
+      ],
+      "canonical": "https://theory-playalong-sidecar.sociobot.in/demo",
+      "description": "Try the sample groove and see notes inside C major.",
+      "ogTitle": "Demo — Theory Playalong Sidecar",
+      "ogDescription": "Try the sample groove and see notes inside C major.",
+      "twitterTitle": "Demo — Theory Playalong Sidecar",
+      "twitterDescription": "Try the sample groove and see notes inside C major.",
+      "main": 1,
+      "build": "v1.0.4",
+      "seriousAxeViolations": 0
+    },
+    "/privacy": {
+      "title": "Privacy — Theory Playalong Sidecar",
+      "h1": [
+        "Your practice stays on this device"
+      ],
+      "canonical": "https://theory-playalong-sidecar.sociobot.in/privacy",
+      "description": "Read what Theory Playalong Sidecar stores in your browser.",
+      "ogTitle": "Privacy — Theory Playalong Sidecar",
+      "ogDescription": "Read what Theory Playalong Sidecar stores in your browser.",
+      "twitterTitle": "Privacy — Theory Playalong Sidecar",
+      "twitterDescription": "Read what Theory Playalong Sidecar stores in your browser.",
+      "main": 1,
+      "build": "v1.0.4",
+      "seriousAxeViolations": 0
+    },
+    "/terms": {
+      "title": "Terms — Theory Playalong Sidecar",
+      "h1": [
+        "Terms for Theory Playalong Sidecar"
+      ],
+      "canonical": "https://theory-playalong-sidecar.sociobot.in/terms",
+      "description": "Read the terms for using Theory Playalong Sidecar.",
+      "ogTitle": "Terms — Theory Playalong Sidecar",
+      "ogDescription": "Read the terms for using Theory Playalong Sidecar.",
+      "twitterTitle": "Terms — Theory Playalong Sidecar",
+      "twitterDescription": "Read the terms for using Theory Playalong Sidecar.",
+      "main": 1,
+      "build": "v1.0.4",
+      "seriousAxeViolations": 0
+    }
+  },
+  "demo": {
+    "queryEntry": true,
+    "banner": true,
+    "resetToFour": true,
+    "realHistoryPreserved": true,
+    "selectedKeyChanged": true,
+    "audioContinued": true
+  },
+  "backup": {
+    "restoredExactRows": true,
+    "restoredKeyLabels": true,
+    "malformedFilePreservedRows": true
+  },
+  "historyDeletion": {
+    "persistedAfterReload": true,
+    "settingsPreserved": true
+  },
+  "fallbacks": {
+    "/offline.html": {
+      "status": 200,
+      "title": "Offline — Theory Playalong Sidecar",
+      "h1": "You are offline",
+      "privacyLink": 2,
+      "termsLink": 1,
+      "build": "v1.0.4",
+      "seriousAxeViolations": 0
+    },
+    "/missing-polish-3": {
+      "status": 404,
+      "title": "Theory Playalong Sidecar — page not found",
+      "h1": "Page not found",
+      "privacyLink": 2,
+      "termsLink": 1,
+      "build": "v1.0.4",
+      "seriousAxeViolations": 0
+    }
+  },
+  "privacy": {
+    "outsideRequests": [],
+    "requestCount": 49,
+    "nonGetRequests": [],
+    "requestsWithBodies": []
+  },
+  "consoleErrors": [],
+  "copy": {
+    "firstScreenJob": true,
+    "firstScreenAudience": true,
+    "noteHistoryTerminology": true,
+    "stalePhrasesAbsent": true
+  },
+  "mobile": {
+    "width": 390,
+    "noHorizontalOverflow": true,
+    "firstActionVisible": true,
+    "factsVisible": true
+  },
+  "securityHeaders": {
+    "contentSecurityPolicy": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'",
+    "xContentTypeOptions": "nosniff",
+    "referrerPolicy": "strict-origin-when-cross-origin"
+  },
+  "offlineReload": true
+}
