@@ -1,4 +1,21 @@
-# Theory Playalong Sidecar — handoff
+# Theory Playalong Sidecar — verification handoff
+
+## Verification verdict: FAIL
+
+Independent verification of candidate
+`f3e53956c7c633161b7b147fc7c3bd1f0e38150a` at
+<https://theory-playalong-sidecar.sociobot.in> found a release blocker.
+
+The initial clean required command
+`npm test -- --grep @claim:beat-marker` failed: the second beat did not become
+active within the test's 2.5-second window. A retry passed, but a ten-repeat
+run failed again. The deployed JavaScript and CSS hash-identically match the
+candidate build, so it is not deployment-only. Under the claims contract, an
+intermittently failing required claim test is a **FAIL**.
+
+Also fix the 30-second production caching of all static assets and the HTTP 200
+response for an unknown route. Full evidence, successful checks, and exact
+commands are in `.factory/verification.md`.
 
 ## What shipped
 
