@@ -1,4 +1,40 @@
-# Theory Playalong Sidecar — repair handoff
+# Theory Playalong Sidecar — review 1 handoff
+
+## Review result
+
+Independent adversarial first-read review completed against the live product
+and a clean clone at `47c64afbeccdecce8a45b2f934e5d66712e89352`.
+
+**Verdict: FAIL (five minor findings).** The full report is
+`.factory/review-1.md`. The product is clear and usable in the first screen,
+the demo is isolated and resettable, every declared claim test passes, and the
+quality gates pass. Remaining work is limited to title/OG metadata, plain-word
+copy, unregistered landing promises, and consistent product naming.
+
+## How verified
+
+- Cold live desktop and 390 px mobile contexts; no console errors or
+  third-party runtime requests.
+- Direct `/demo` sandbox: empty browser storage, four sample notes, only
+  product-origin/blob requests, and reset from five played notes back to four.
+- Fresh-clone `npm ci`; every exact `.factory/claims.json` command passed;
+  `npm test` passed 14/14; lint and production build passed.
+- Live route/link/404, title, description, canonical, Open Graph, manifest,
+  robots, sitemap, accessibility-test, and prior-verification checks.
+
+## Scope of this commit
+
+Only review artifacts were changed. No product source, configuration, or
+deployment files were modified.
+
+## Next step
+
+Repair F-1-1 through F-1-5 in `.factory/review-1.md`, then request the next
+fresh adversarial review.
+
+---
+
+# Previous repair handoff (superseded by review 1)
 
 ## Independent QA verification — PASS
 
