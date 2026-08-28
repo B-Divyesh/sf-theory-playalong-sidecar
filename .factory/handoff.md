@@ -1,88 +1,113 @@
-# Theory Playalong Sidecar — verification handoff
+# Theory Playalong Sidecar — repair handoff
 
-## Verification verdict: FAIL
+## Result
 
-Independent verification of candidate
-`f3e53956c7c633161b7b147fc7c3bd1f0e38150a` at
-<https://theory-playalong-sidecar.sociobot.in> found a release blocker.
+Release blockers reported in verifier commit
+`8c3c465ba207052ae848fef1d82bcdb4359ebb19` are repaired for candidate
+`f3e53956c7c633161b7b147fc7c3bd1f0e38150a`.
 
-The initial clean required command
-`npm test -- --grep @claim:beat-marker` failed: the second beat did not become
-active within the test's 2.5-second window. A retry passed, but a ten-repeat
-run failed again. The deployed JavaScript and CSS hash-identically match the
-candidate build, so it is not deployment-only. Under the claims contract, an
-intermittently failing required claim test is a **FAIL**.
+- Beat progression no longer depends on a sparse `timeupdate` event or a test
+  catching one short active class. Playback now samples `currentTime` while it
+  runs and records a durable highest-beat milestone. The visible marker still
+  follows the current beat.
+- Vite now emits content-hashed JavaScript and CSS. The existing hero and
+  social images use the first eight characters of their SHA-256. Azure Static
+  Web Apps gives `/assets/*` a one-year immutable cache policy.
+- Only `/`, `/demo`, `/privacy`, and `/terms` rewrite to the SPA entry point.
+  Unknown paths fall through to the host's 404 response override and
+  `/404.html`.
+- The service-worker cache name is derived from the built asset list. Its
+  precache is stamped after every build, so an asset revision always produces
+  a new shell cache.
 
-Also fix the 30-second production caching of all static assets and the HTTP 200
-response for an unknown route. Full evidence, successful checks, and exact
-commands are in `.factory/verification.md`.
+The brief, visual thesis, local-first storage, one-click demo, MIDI path,
+screen/computer keys, exports, privacy behavior, and offline deployment class
+are unchanged.
 
-## What shipped
+## Regression coverage
 
-- A Vite and TypeScript PWA with Web MIDI note-on input.
-- Local audio-file playback with a manual 30–240 BPM beat rail.
-- A playable one-octave screen keyboard and A–K computer-key controls.
-- Major and minor key selection, scale degrees, and diatonic chord suggestions.
-- Non-judgmental in-key and outside-key note history.
-- IndexedDB persistence for real settings and history. Audio files are not
-  stored.
-- CSV and JSON export, plus JSON import.
-- A one-click `/demo` with an eight-second procedural C-major groove and four
-  sample notes. Demo state stays in memory and does not open the real database.
-- Install metadata, original icons, a cache-first service worker, offline
-  fallback, and an update-ready notice.
-- Real `/privacy`, `/terms`, `/demo`, and styled not-found routes.
-- A product-specific pixel/demoscene visual system and original generated hero
-  artwork. Source, prompt, review, and public WebP are included.
+`tests/app.spec.ts` contains one named regression for each verifier finding:
 
-## Run and deploy
+- `@regression:beat-marker` checks the durable progression milestone, the
+  single visible active marker, and continuing audio playback.
+- `@regression:immutable-assets` checks content-hashed JS/CSS, SHA-versioned
+  images, the one-year immutable host policy, and exact service-worker
+  precache entries.
+- `@regression:http-404` checks that wildcard SPA fallback is absent, only the
+  four real app routes rewrite, and the 404 override targets the designed
+  page.
+- `@regression:service-worker-update` changes the served worker revision in an
+  isolated browser context, then verifies activation, cache replacement, and
+  the in-app update notice.
+
+The ten entries in `.factory/claims.json` still map one-to-one to their
+`@claim:<id>` browser tests.
+
+## Verification evidence — 2026-08-28
+
+Clean release matrix:
 
 ```sh
-npm install
+npm ci
+npm run lint
 npm test
 npm run build
+npm audit --audit-level=high
 ```
 
-The exact build command is `npm run build`. It writes the static site to
-`dist/`, with `dist/index.html` at the root. Deploy that directory as-is.
+Results: clean install passed; ESLint passed; TypeScript passed; Playwright
+passed 14/14 in Chromium 145; the production build passed; npm audit reported
+zero vulnerabilities. Each of the ten exact test commands from
+`.factory/claims.json` was also run separately and passed.
 
-## Verification
+The beat regression passed 20 consecutive single-worker repetitions:
 
-Verified on 2026-08-28 in headless Chromium 145.
+```sh
+npm test -- --grep @claim:beat-marker --repeat-each=20 --workers=1
+```
 
-- `npm test`: 11 passed. This includes all ten claim-tagged tests, an offline
-  reload from the first visit, a synthetic MIDI message, exports, demo storage
-  isolation, mobile width, route metadata, keyboard use, and axe scans.
-- `npm run build`: passed. Initial output is 8.22 KB JavaScript gzip and 3.76 KB
-  CSS gzip. The hero WebP is 57 KB.
-- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173 .factory/evidence`:
-  passed with no console errors, one H1, `lang="en"`, a main landmark, and no
-  missing image alt text.
-- Axe 4.10 through Playwright: no serious or critical violations at 390×844.
-- Lighthouse 12 mobile: Performance 99, Accessibility 100, Best Practices 100,
-  SEO 100. LCP 1.5 s, CLS 0, total blocking time 110 ms. Lab INP was not
-  available; total blocking time is recorded as the interaction proxy.
-- `npm audit --audit-level=high`: zero vulnerabilities.
+Browser coverage includes desktop and 390×844 mobile, pointer and computer-key
+input, route focus, visible keyboard focus, reduced motion, demo isolation,
+outgoing-request capture, IndexedDB behavior, offline reload, and a forced
+service-worker update. Axe found no serious or critical issues on desktop or
+mobile. The factory URL verifier found no console/page errors, one h1,
+`lang="en"`, a main landmark, and no missing image alt text.
 
-Evidence is in `.factory/evidence/`: `lighthouse.json`, `verify.json`, and
-desktop and mobile screenshots. Tested copy claims are mapped in
-`.factory/claims.json`. The plain-language audit is in
-`.factory/copy-audit.md`.
+Lighthouse 12.8.2 mobile: Performance 100, Accessibility 100, Best Practices
+100, SEO 100; LCP 1.584 s, CLS 0, TBT 0 ms. Production output is 22.34 KB raw
+JavaScript (8.47 KB gzip), 14.14 KB raw CSS (3.77 KB gzip), and a 57.41 KB hero
+image. Evidence and refreshed desktop/mobile screenshots are in
+`.factory/evidence/`.
 
-## Known gaps and honest boundaries
+Before deployment, live reproduction confirmed `/missing-page` returned HTTP
+200 and `/assets/app.js` returned `Cache-Control: public, must-revalidate,
+max-age=30`. The verifier report contains the original beat-marker failure and
+repeat failure artifacts.
 
-- Web MIDI requires a supporting browser, a secure deployed origin, and user
-  permission. The screen and computer keys remain available elsewhere.
-- The beat rail follows the tempo entered by the player. It does not detect a
-  file's tempo or downbeat.
-- The tool handles note-on messages only. It does not visualize pedals,
-  aftertouch, or pitch bend.
-- Usage analytics were intentionally omitted. The factory cannot measure the
-  brief's weekly-session success metric without adding a privacy-reviewed,
-  opt-in counter.
+## Deploy
 
-## Suggested next checks
+Build and deploy the generated static root:
 
-1. Test two common USB MIDI keyboards on deployed Chrome and Edge.
-2. Confirm the service-worker update notice through one production revision.
-3. Compare the manual BPM control with backing tracks that begin after silence.
+```sh
+npm ci && npm test && npm run build
+/opt/fleet/lib/deploy-static.sh theory-playalong-sidecar dist
+```
+
+Live deployment and identity checks are recorded below after upload.
+
+## Honest boundaries
+
+- Web MIDI requires a supporting browser, a secure origin, and permission.
+  Screen and computer keys remain available without it.
+- The beat rail follows the tempo entered by the player. It does not detect an
+  audio file's tempo or downbeat.
+- The app handles note-on messages. It does not visualize pedals, aftertouch,
+  or pitch bend.
+- There is no package/consumer surface, backend, account, payment, API,
+  analytics, or AI call. Package-consumer, auth, API-rate-limit, billing, and
+  live-model checks do not apply.
+
+## Next hardware check
+
+Test two common USB MIDI keyboards on deployed Chrome and Edge. Synthetic Web
+MIDI covers the same note-on path in CI, but it cannot verify device drivers.

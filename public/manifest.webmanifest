@@ -2,7 +2,7 @@
   "name": "Theory Playalong Sidecar",
   "short_name": "Theory Sidecar",
   "description": "Play notes against a key while a backing track continues.",
-  "start_url": "/?v=1",
+  "start_url": "/?v=1.0.1",
   "scope": "/",
   "display": "standalone",
   "background_color": "#090c16",

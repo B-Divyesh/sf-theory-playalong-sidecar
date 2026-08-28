@@ -1,9 +1,9 @@
 import './style.css';
-import { KEYS, NOTE_NAMES, chordsForKey, frequencyForMidi, noteContext, scalePitches, type Mode } from './theory';
+import { KEYS, NOTE_NAMES, frequencyForMidi, noteContext, scalePitches, type Mode } from './theory';
 import { loadState, saveState, type HistoryNote, type SavedState } from './storage';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
-const BUILD = 'v1.0.0';
+const BUILD = 'v1.0.1';
 const CANONICAL = 'https://theory-playalong-sidecar.sociobot.in';
 const keyboardMap: Record<string, number> = {a:60,w:61,s:62,e:63,d:64,f:65,t:66,g:67,y:68,h:69,u:70,j:71,k:72};
 let cleanup: Array<() => void> = [];
@@ -21,7 +21,7 @@ function shell(content: string, demo = false): string {
     <a class="skip-link" href="#main">Skip to main content</a>
     ${demo ? `<aside class="demo-bar" aria-label="Demo mode"><strong>Demo</strong> — sample data, nothing is saved <span><button class="text-button" id="reset-demo">Reset demo</button><a href="/" data-link>Start for real</a></span></aside>` : ''}
     <header class="site-header">
-      <a class="wordmark" href="/" data-link aria-label="Theory Playalong Sidecar home"><span aria-hidden="true">▞</span> THEORY SIDECAR</a>
+      <a class="wordmark" href="/" data-link aria-label="Theory Sidecar home"><span aria-hidden="true">▞</span> THEORY SIDECAR</a>
       <nav aria-label="Main navigation"><a href="/" data-link>Home</a><a href="/demo" data-link>Demo</a><a href="/privacy" data-link>Privacy</a></nav>
     </header>
     ${content}
@@ -44,7 +44,7 @@ function landing(): string {
         <div class="hero-actions"><a class="button primary" href="/demo" data-link>Try it with sample data</a><span>Opens a ready C-major practice set.</span></div>
         <ul class="plain-facts"><li>Free to use.</li><li>Audio stays on your device.</li><li>Works offline after your first visit.</li></ul>
       </div>
-      <figure class="hero-art"><picture><img src="/assets/harmony-console.webp" width="1200" height="800" alt="A pixel keyboard sends glowing notes into a twelve-note harmony wheel." fetchpriority="high" decoding="async"></picture><figcaption>Play a note. See its place in the key.</figcaption></figure>
+      <figure class="hero-art"><picture><img src="/assets/harmony-console.32a49c4c.webp" width="1200" height="800" alt="A pixel keyboard sends glowing notes into a twelve-note harmony wheel." fetchpriority="high" decoding="async"></picture><figcaption>Play a note. See its place in the key.</figcaption></figure>
     </section>
     ${workspace(false, false)}
     <section class="how" aria-labelledby="how-title"><p class="section-code">02 / SIGNAL PATH</p><h2 id="how-title">How it works</h2><ol class="steps"><li><span>01</span><div><h3>Choose the context</h3><p>Pick a key, then load your own audio file.</p></div></li><li><span>02</span><div><h3>Play without stopping</h3><p>Use MIDI or the screen keys while the audio continues.</p></div></li><li><span>03</span><div><h3>Notice what changed</h3><p>See the scale degree, nearby chords, and your note history.</p></div></li></ol></section>
@@ -56,28 +56,30 @@ function workspace(isDemo: boolean, isPage = true): string {
   const heading = isPage ? `<p class="section-code">DEMO / C MAJOR</p><h1 tabindex="-1">Try notes in C major</h1><p class="demo-intro">The sample groove and four notes are ready. Press a screen key or use A–K on your keyboard.</p>` : `<p class="section-code">01 / PLAYALONG</p><h2 id="play-title">Keep the track moving</h2>`;
   const tag = isPage ? 'main' : 'section';
   const attrs = isPage ? `id="main" class="workspace-page"` : `id="play" class="workspace-section" aria-labelledby="play-title"`;
+  const panelHeading = isPage ? 'h2' : 'h3';
+  const panelSubheading = isPage ? 'h3' : 'h4';
   return `<${tag} ${attrs}>${heading}
     <div class="console" data-demo="${isDemo}">
       <section class="source-panel" aria-labelledby="source-title">
-        <div class="panel-heading"><div><span class="panel-number">A</span><h3 id="source-title">Backing track</h3></div><output id="audio-status" class="readout">${isDemo ? 'SAMPLE READY' : 'NO AUDIO'}</output></div>
+        <div class="panel-heading"><div><span class="panel-number">A</span><${panelHeading} id="source-title">Backing track</${panelHeading}></div><output id="audio-status" class="readout">${isDemo ? 'SAMPLE READY' : 'NO AUDIO'}</output></div>
         <div class="source-controls">
           <label class="file-button"><span>${isDemo ? 'Replace sample audio' : 'Choose an audio file'}</span><input id="audio-file" type="file" accept="audio/*"></label>
           ${isDemo ? `<button id="sample-play" class="button secondary" type="button">Play sample groove</button>` : ''}
           <audio id="audio-player" controls preload="metadata" aria-label="Backing track player"></audio>
         </div>
-        <div class="tempo-row"><label for="bpm">Tempo <input id="bpm" type="number" min="30" max="240" step="1" value="96"> BPM</label><div class="beat-rail" aria-label="Eight-beat marker" id="beat-rail">${Array.from({length:8},(_,i)=>`<i class="${i===0?'active':''}" data-beat="${i}" aria-hidden="true"></i>`).join('')}<span class="sr-only" id="beat-text">Beat 1 of 8</span></div></div>
+        <div class="tempo-row"><label for="bpm">Tempo <input id="bpm" type="number" min="30" max="240" step="1" value="96"> BPM</label><div class="beat-rail" aria-label="Eight-beat marker; playback has reached beat 1" id="beat-rail">${Array.from({length:8},(_,i)=>`<i class="${i===0?'active':''}" data-beat="${i}" aria-hidden="true"></i>`).join('')}<span class="sr-only" id="beat-text">Beat 1 of 8</span></div></div>
       </section>
       <section class="context-panel" aria-labelledby="context-title">
-        <div class="panel-heading"><div><span class="panel-number">B</span><h3 id="context-title">Harmony context</h3></div><output id="midi-status" class="readout">MIDI NOT CONNECTED</output></div>
+        <div class="panel-heading"><div><span class="panel-number">B</span><${panelHeading} id="context-title">Harmony context</${panelHeading}></div><output id="midi-status" class="readout">MIDI NOT CONNECTED</output></div>
         <div class="context-controls"><label for="key-select">Key<select id="key-select">${KEYS.map(key=>`<option>${key}</option>`).join('')}</select></label><label for="mode-select">Scale<select id="mode-select"><option value="major">Major</option><option value="minor">Minor</option></select></label><button id="connect-midi" class="button secondary" type="button">Connect MIDI</button></div>
         <p id="midi-help" class="help">No MIDI keyboard? Use the screen keys or A–K.</p>
       </section>
       <section class="live-panel" aria-labelledby="live-title">
         <div class="live-note" id="live-note"><p class="panel-number" id="live-title">LIVE NOTE</p><strong id="note-name">—</strong><span id="note-fit">Play a note to see its place.</span></div>
-        <div class="chord-area"><h3>Chords that include it</h3><div id="chord-map" class="chord-map"><p>Chord names appear after you play.</p></div></div>
+        <div class="chord-area"><${panelSubheading}>Chords that include it</${panelSubheading}><div id="chord-map" class="chord-map"><p>Chord names appear after you play.</p></div></div>
       </section>
-      <section class="keyboard-panel" aria-labelledby="keyboard-title"><div class="keyboard-heading"><div><span class="panel-number">C</span><h3 id="keyboard-title">One-octave note map</h3></div><p>Computer keys: A W S E D F T G Y H U J K</p></div><div class="keyboard-scroll"><div class="piano" id="piano" role="group" aria-label="Playable one-octave keyboard">${pianoKeys()}</div></div><p id="scale-summary" class="scale-summary"></p></section>
-      <section class="history-panel" aria-labelledby="history-title"><div class="panel-heading"><div><span class="panel-number">D</span><h3 id="history-title">Recent notes</h3></div><span id="history-count" class="readout">0 NOTES</span></div><ol id="history-list" class="history-list" tabindex="0" aria-label="Scrollable recent note history"><li class="empty">Played notes will appear here.</li></ol><div class="history-actions"><button class="text-button" id="clear-history" type="button">Clear history</button><button class="text-button" id="export-csv" type="button">Export CSV</button><button class="text-button" id="export-json" type="button">Export JSON</button><label class="text-button import-label">Import JSON<input id="import-json" type="file" accept="application/json"></label></div></section>
+      <section class="keyboard-panel" aria-labelledby="keyboard-title"><div class="keyboard-heading"><div><span class="panel-number">C</span><${panelHeading} id="keyboard-title">One-octave note map</${panelHeading}></div><p>Computer keys: A W S E D F T G Y H U J K</p></div><div class="keyboard-scroll"><div class="piano" id="piano" role="group" aria-label="Playable one-octave keyboard">${pianoKeys()}</div></div><p id="scale-summary" class="scale-summary"></p></section>
+      <section class="history-panel" aria-labelledby="history-title"><div class="panel-heading"><div><span class="panel-number">D</span><${panelHeading} id="history-title">Recent notes</${panelHeading}></div><span id="history-count" class="readout">0 NOTES</span></div><ol id="history-list" class="history-list" tabindex="0" aria-label="Scrollable recent note history"><li class="empty">Played notes will appear here.</li></ol><div class="history-actions"><button class="text-button" id="clear-history" type="button">Clear history</button><button class="text-button" id="export-csv" type="button">Export CSV</button><button class="text-button" id="export-json" type="button">Export JSON</button><label class="text-button import-label">Import JSON<input id="import-json" type="file" accept="application/json"></label></div></section>
     </div>
   </${tag}>`;
 }
@@ -85,7 +87,8 @@ function workspace(isDemo: boolean, isPage = true): string {
 function pianoKeys(): string {
   const white = [60,62,64,65,67,69,71,72];
   const black = [61,63,66,68,70];
-  return [...white.map(midi=>`<button class="piano-key white" data-midi="${midi}" type="button" aria-label="Play ${NOTE_NAMES[midi%12]}"><span>${NOTE_NAMES[midi%12]}</span><small>${Object.keys(keyboardMap).find(key=>keyboardMap[key]===midi)?.toUpperCase() ?? ''}</small></button>`),...black.map(midi=>`<button class="piano-key black black-${midi}" data-midi="${midi}" type="button" aria-label="Play ${NOTE_NAMES[midi%12]}"><span>${NOTE_NAMES[midi%12]}</span><small>${Object.keys(keyboardMap).find(key=>keyboardMap[key]===midi)?.toUpperCase() ?? ''}</small></button>`)].join('');
+  const key=(midi:number,kind:'white'|'black')=>{const note=NOTE_NAMES[midi%12],shortcut=Object.keys(keyboardMap).find(name=>keyboardMap[name]===midi)?.toUpperCase()??'';return `<button class="piano-key ${kind}${kind==='black'?` black-${midi}`:''}" data-midi="${midi}" type="button" aria-label="Play ${note}"><span>${note}</span><small aria-hidden="true">${shortcut}</small></button>`;};
+  return [...white.map(midi=>key(midi,'white')),...black.map(midi=>key(midi,'black'))].join('');
 }
 
 function textPage(kind: 'privacy'|'terms'): string {
@@ -208,8 +211,27 @@ async function bindWorkspace(isDemo: boolean): Promise<void> {
   });
   file.addEventListener('change',()=>{const chosen=file.files?.[0];if(!chosen)return;if(audioUrl)URL.revokeObjectURL(audioUrl);audioUrl=URL.createObjectURL(chosen);audio.src=audioUrl;audio.loop=false;document.querySelector('#audio-status')!.textContent='LOCAL AUDIO READY';announce(`${chosen.name} is ready.`);});
   document.querySelector('#sample-play')?.addEventListener('click',()=>{if(audio.paused){audio.play().then(()=>{document.querySelector('#sample-play')!.textContent='Pause sample groove';document.querySelector('#audio-status')!.textContent='SAMPLE PLAYING';}).catch(()=>announce('The sample could not start. Press play in the audio controls.'));}else{audio.pause();document.querySelector('#sample-play')!.textContent='Play sample groove';document.querySelector('#audio-status')!.textContent='SAMPLE PAUSED';}});
-  const beat=()=>{const index=Math.floor(audio.currentTime/(60/state.bpm))%8;document.querySelectorAll('#beat-rail i').forEach((dot,i)=>dot.classList.toggle('active',i===index));document.querySelector('#beat-text')!.textContent=`Beat ${index+1} of 8`;};
-  audio.addEventListener('timeupdate',beat);
+  const beatRail=document.querySelector<HTMLElement>('#beat-rail')!;
+  let beatFrame:number|null=null;
+  let furthestBeat=0;
+  let currentBeat=-1;
+  const beat=()=>{
+    const index=Math.floor(audio.currentTime/(60/state.bpm))%8;
+    if(index===currentBeat)return;
+    currentBeat=index;
+    furthestBeat=Math.max(furthestBeat,index);
+    beatRail.querySelectorAll('i').forEach((dot,i)=>dot.classList.toggle('active',i===index));
+    document.querySelector('#beat-text')!.textContent=`Beat ${index+1} of 8`;
+    beatRail.setAttribute('aria-label',`Eight-beat marker; playback has reached beat ${furthestBeat+1}`);
+    beatRail.dataset.highestBeat=String(furthestBeat+1);
+  };
+  const stopBeatLoop=()=>{if(beatFrame!==null)cancelAnimationFrame(beatFrame);beatFrame=null;};
+  const runBeatLoop=()=>{stopBeatLoop();const frame=()=>{beat();if(!audio.paused&&!audio.ended)beatFrame=requestAnimationFrame(frame);else beatFrame=null;};frame();};
+  audio.addEventListener('play',runBeatLoop);
+  audio.addEventListener('pause',stopBeatLoop);
+  audio.addEventListener('ended',stopBeatLoop);
+  audio.addEventListener('seeked',beat);
+  cleanup.push(stopBeatLoop);
   document.querySelector('#clear-history')!.addEventListener('click',()=>{if(!confirm(`Clear ${state.history.length} recent notes?`))return;state.history=[];renderHistory();persist();announce('Note history cleared.');});
   document.querySelector('#export-csv')!.addEventListener('click',()=>download('theory-sidecar-history.csv',`note,in_key,key,played_at\n${state.history.map(n=>`${n.name},${n.inKey},${n.keyName},${n.playedAt}`).join('\n')}`,'text/csv'));
   document.querySelector('#export-json')!.addEventListener('click',()=>download('theory-sidecar-history.json',JSON.stringify({version:1,history:state.history},null,2),'application/json'));

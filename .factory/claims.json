@@ -25,7 +25,7 @@
     "claim": "Shows an eight-beat marker that advances with audio playback at the chosen tempo.",
     "where": "landing workspace, demo workspace, README",
     "test": "npm test -- --grep @claim:beat-marker",
-    "sandbox": "fresh browser context at /demo; play the 96 BPM sample and observe the second beat"
+    "sandbox": "fresh browser context at /demo; play the 96 BPM sample and assert the durable progression milestone reaches beat 2"
   },
   {
     "id": "csv-export",

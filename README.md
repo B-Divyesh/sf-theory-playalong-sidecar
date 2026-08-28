@@ -39,6 +39,8 @@ Open <http://localhost:5173>. For the ready sandbox, open
 
 ```sh
 npm test
+npm run typecheck
+npm run lint
 npm run build
 ```
 

@@ -1,5 +1,10 @@
-const VERSION = 'sidecar-v4';
-const SHELL = ['/', '/demo', '/privacy', '/terms', '/offline.html', '/simple.css', '/manifest.webmanifest', '/icon.svg', '/assets/harmony-console.webp', '/assets/app.js', '/assets/index.css'];
+// The production build replaces these two values from its content-hashed files.
+const VERSION = 'sidecar-development';
+const SHELL = [
+  '/', '/demo', '/privacy', '/terms', '/offline.html', '/simple.css',
+  '/manifest.webmanifest', '/icon.svg',
+  '/assets/harmony-console.32a49c4c.webp'
+];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(VERSION).then(cache => Promise.all(SHELL.map(async url => {
     const response = await fetch(new Request(url, {cache:'reload'}));
