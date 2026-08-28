@@ -1,10 +1,15 @@
 # Polish round 3 — cumulative finding closure
 
-**Candidate reviewed:** `e6957f0678bd13569627ed687bf29a88c2c1d90e`  
-**Review commit:** `1796fc2cca66d41c2bede614201fd549eb5c5ebf`  
-**Repair commits:** `73357c0159145c61b7cf715bfd6ab49c3e32b747`, `e0148cec2413198e0c4e11f9863b009d67866dfc`  
-**Repair release:** `v1.0.4`  
-**Live URL:** <https://theory-playalong-sidecar.sociobot.in>  
+**Candidate reviewed:** `e6957f0678bd13569627ed687bf29a88c2c1d90e`
+
+**Review commit:** `1796fc2cca66d41c2bede614201fd549eb5c5ebf`
+
+**Repair commits:** `73357c0159145c61b7cf715bfd6ab49c3e32b747`, `e0148cec2413198e0c4e11f9863b009d67866dfc`
+
+**Repair release:** `v1.0.4`
+
+**Live URL:** <https://theory-playalong-sidecar.sociobot.in>
+
 **Direct demo:** <https://theory-playalong-sidecar.sociobot.in/?demo=1>
 
 The test names below are in `tests/app.spec.ts`. Live assertions are recorded
